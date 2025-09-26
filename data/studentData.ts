@@ -1,0 +1,312 @@
+import { Student, Grade } from '../types';
+
+const CSV_DATA = `First Name,Last Name,ID,Adjusted CEFR,H&S,Calculus,Applied Statics,Applied Statics,Appliesd Thermodynamics,General Chemistry,General Physics,Industrial Electricity,Industrial Safety,Industrial Supervision,Machining Processes,Materials Technology,Plant Maintenace,Tech avrage
+Talal,Alghamdi,1097026437,C1,95,100,100,100,100,100,100,80,100,100,100,80,100,96.7
+Almojerah,Attar,1100572021,B2,95,60,80,80,100,80,100,100,100,100,100,100,100,91.7
+Ahmad,Hassan,1101502894,B1,65,100,60,60,100,60,100,100,100,100,100,100,100,90.0
+Bassam,Alamri,1103514483,C2,100,20,80,80,20,40,60,60,60,100,60,40,100,60.0
+AYED,ALHARBI,1103586689,B1,75,60,80,80,80,80,80,100,100,60,80,100,80,81.7
+Mohammed,Alsulami,1105648958,C1,100,80,80,80,100,80,100,100,100,100,60,60,100,86.7
+Hamad,Alqahtani,1107065607,A2,90,80,80,100,80,100,100,100,100,80,100,80,100,91.7
+Tariq,Al Bahri,1107365122,B1,100,80,60,80,60,80,100,100,100,80,80,80,100,83.3
+Moayad,Alnakhly,1107635631,B2,90,80,100,100,80,80,80,100,100,100,100,80,100,91.7
+Anas,Bin Jahlan,1108352251,C1,95,20,80,60,80,80,80,100,100,80,80,40,80,73.3
+Mohammed,Alnakhli,1108956747,C1,100,60,80,100,100,100,100,100,100,80,100,80,100,91.7
+SULAIMAN,ALMUBAEED,1109273829,A2,85,100,100,100,100,100,100,100,100,100,100,100,100,100.0
+Mohammed,Alzubaidi,1109782076,B2,75,20,100,60,100,100,80,80,80,100,100,100,80,83.3
+Mohammed,Basha,1110195565,A2,85,20,100,100,100,100,100,100,80,60,100,100,80,86.7
+Abdulrhman,ALghamdi,1110307236,C1,95,80,100,100,100,100,100,100,80,80,100,80,100,93.3
+zeyad,Althubyani,1110547005,B1,85,100,60,80,80,100,100,100,100,80,60,100,40,83.3
+Alwalid,Aljohani,1110835277,B1,95,80,100,60,100,100,80,100,100,100,80,100,100,91.7
+Ayoub,Alhedaithi,1111262331,C1,100,40,80,60,80,80,80,80,100,100,100,100,80,81.7
+khalid,alotaibi,1111567580,B2,95,80,80,40,80,60,80,100,100,80,80,80,100,80.0
+Hisham,ALHARBI,1111625933,B2,100,80,80,100,100,80,100,100,80,80,100,100,100,91.7
+Ibrahim,Aljuhani,1111643670,B2,95,40,40,40,100,80,100,100,80,100,100,60,100,78.3
+Abdulrahman,Alganawi,1112306996,B1,100,40,40,80,80,100,80,100,80,60,100,60,40,71.7
+Faisal,Alsharif,1112386626,B2,85,60,40,60,20,100,80,100,100,80,40,80,80,70.0
+Naif,ALqawsi,1112676356,C1,95,40,80,100,60,20,100,80,80,100,40,40,100,70.0
+Ali,Alhajjj,1113233009,C1,90,100,80,100,100,60,100,100,80,100,100,100,100,93.3
+Badr,Alnoman,1113248320,B2,90,80,100,100,100,80,100,100,100,100,100,80,100,95.0
+Hassan,Almutawah,1113538183,C1,100,100,100,80,100,100,100,60,100,100,100,80,100,93.3
+Ali,Alnakhli,1113562969,B1,85,0,40,60,80,100,100,100,80,80,100,80,100,76.7
+Abdullah,Kubaisi,1113630840,B2,100,80,100,100,100,100,100,100,100,100,100,100,100,98.3
+Omar,Aljohani,1113697096,B2,85,20,60,100,60,100,100,80,100,60,80,40,80,73.3
+Alharith,Alahmadi,1113799769,C1,100,100,100,100,100,100,100,100,100,100,100,100,100,100.0
+Faisal,Alshammari,1114304635,C1,100,100,100,80,80,100,100,100,100,100,100,100,100,96.7
+Ahmed,Alnakhli,1114801309,B2,90,40,80,80,100,80,80,100,100,60,80,60,100,80.0
+YAZEED,ALZAHRANI,1115057885,B1,65,100,100,100,100,100,100,100,100,100,100,100,100,100.0
+MURTADHA,ALZEER,1115072413,B2,95,100,100,100,100,80,80,100,100,100,80,100,100,95.0
+Ali,Al Nasser,1115162180,C1,100,100,100,100,100,100,100,100,80,100,100,100,80,96.7
+Sultan,Al juhani,1115184424,A2,70,40,100,80,100,100,80,100,100,100,60,80,100,86.7
+Mohammad,Bawadoud,1115239285,C1,100,80,100,100,100,100,100,100,100,100,100,100,100,98.3
+Abdulrhman,Aljohani,1115281659,B1,90,80,60,100,100,100,100,100,100,100,100,100,80,93.3
+YASIR,Alsayed,1115393686,B1,65,80,20,20,40,100,100,80,100,80,20,60,100,66.7
+Ahmed,Bagazal,1116241603,B1,100,40,100,100,100,80,80,100,100,80,80,100,80,86.7
+Abdulaziz,Alzhrani,1116317726,C1,95,40,80,20,80,80,80,100,100,80,60,60,100,73.3
+Maher,Alghamdi,1116735828,C1,75,20,40,80,80,60,80,100,80,60,40,20,60,60.0
+Basil,Altalhi,1116768688,A2,90,80,100,80,80,80,100,100,100,100,100,100,100,93.3
+Yousef,Merdad,1116829688,C1,100,100,80,100,60,80,100,100,100,100,40,80,80,85.0
+ABDULRAHMAN,ALHBAISHI,1116886712,B2,85,80,100,100,100,100,100,100,100,100,100,100,100,98.3
+ABDULELAH,ALSIDLANI,1117316065,C1,95,60,80,60,60,80,100,100,60,80,60,40,60,70.0
+Abdulaziz,Alharbi,1117980779,A2,80,40,20,80,80,80,60,100,100,80,40,60,80,68.3
+Abdullah,Albalwi,1118240009,B1,75,80,80,80,100,80,60,100,100,100,100,80,100,88.3
+Aseel,Alghamdi,1118394038,C1,100,100,100,100,100,100,100,100,100,100,100,100,100,100.0
+Mohammed,Almhyawy,1118422110,B1,95,80,80,80,80,80,80,100,100,100,100,100,100,90.0
+Abdallah,Abujabal,1118851615,B1,90,20,100,60,60,100,100,100,80,100,40,80,100,78.3
+Muhannad,Maryudah,1118995586,C1,100,100,100,80,100,100,100,100,100,100,100,100,100,98.3
+wafi,Alharbi,1119390266,B1,90,0,60,40,80,80,60,80,100,80,80,60,100,68.3
+Waleed,Almazmumi,1119666343,B2,95,60,60,60,80,100,100,100,100,100,80,40,100,81.7
+ABDULKARIM,ALHOSAH,1119803201,C1,90,100,100,80,100,100,100,100,80,100,100,100,100,96.7
+Muath,Alamri,1120303803,B1,70,100,100,100,100,100,80,100,100,100,100,100,100,98.3
+YOUSEF,ALRASHIDI,1120425812,C1,90,80,100,80,100,100,100,100,60,100,100,100,100,93.3
+Baher,AlNakhli,1120450695,A2,90,100,100,80,80,100,100,100,80,100,20,80,60,83.3
+ZIYAD,AlJOHANI,1120571284,B1,95,100,100,100,100,100,100,100,80,100,100,100,100,98.3
+Mohsen,Aljohani,1121061723,B2,100,80,60,80,60,60,80,100,80,80,80,60,100,76.7
+Raed,Aloufi,1121353278,B1,100,100,100,80,100,100,100,80,100,100,100,100,100,96.7
+Abdullah,Alamri,1121374746,B1,90,80,60,80,100,80,80,80,100,100,100,100,100,88.3
+Osama,Alharbi,1121381949,C2,100,100,100,100,100,100,100,100,100,100,100,100,100,100.0
+Mohammed,Alharbi,1121432114,B2,90,80,80,80,100,100,100,100,80,100,60,80,100,88.3
+Abdulaziz,Turson,1121566291,C2,90,80,100,100,100,100,100,80,100,100,80,100,80,93.3
+Abdoalrhman,Mastor,1122050998,A2,100,40,60,60,80,60,60,100,100,60,20,80,80,66.7
+Ahmed,Aljuhani,1122087560,C2,95,80,100,100,100,80,100,100,100,80,100,100,80,93.3
+Hamzah,Alobaid,1122259078,B1,85,100,100,100,100,100,80,80,100,100,100,100,100,96.7
+ABDULKARIM,ALZEER,1122271784,C1,95,100,100,80,100,100,100,100,100,100,100,100,100,98.3
+Bandar,Alotabi,1122600008,A2,80,40,20,100,80,80,0,100,80,40,80,60,40,60.0
+Mohammed,Naeeb Alharm,1122608837,B1,100,60,100,100,100,100,100,100,100,100,100,100,100,96.7
+AHMED,Madadin,1122655275,A2,75,0,80,40,80,80,80,80,60,60,60,80,60,63.3
+Motaz,Alsyed,1122834383,B1,75,60,100,80,100,60,60,80,80,100,80,100,100,83.3
+Mohammed,Shamah,1122978982,B2,95,80,100,100,100,100,100,80,100,100,100,80,100,95.0
+Omar,Aharbi,1123131961,B2,95,100,100,100,100,100,100,100,100,100,100,100,100,100.0
+Emad,Alrashdi,1123150714,B2,95,60,80,80,80,80,80,100,100,100,100,100,80,86.7
+Anas,ALMEHMADI,1123165266,B2,100,60,100,100,100,60,80,80,100,100,100,100,100,90.0
+Abdullah,Alharbi,1123432419,C2,100,80,100,80,80,80,100,100,100,100,100,80,100,91.7
+Ziyad,Alghamdi,1123474247,C2,100,100,100,80,100,100,100,60,100,100,80,80,80,90.0
+Abdulslam,Alqarni,1123494203,A2,90,100,100,100,100,100,100,100,100,100,100,100,100,100.0
+Yazeed,Aljohani,1123532432,C1,80,80,100,80,100,100,100,80,100,100,80,100,100,93.3
+Ahmed,Alhawsawi,1123585232,B1,80,60,60,60,100,60,60,60,60,80,80,80,60,68.3
+Yazab,Altalhi,1123675918,A1,85,60,60,100,100,80,100,100,100,100,100,100,100,91.7
+Mohammed,Alzahrani,1124123462,B1,85,80,100,100,100,100,80,80,100,100,100,80,100,93.3
+Khalid,Bugheil,1124244714,C2,100,40,100,80,100,80,80,100,80,80,0,100,100,78.3
+Ilyas,Aldhahri,1124490044,B2,100,100,100,100,100,80,100,100,100,100,100,80,100,96.7
+Hani,Alsulami,1124731322,B2,100,20,60,40,60,60,100,100,100,60,80,80,80,70.0
+Ahmed,Alraygi,1125271625,C1,95,100,80,80,80,80,100,100,100,100,100,80,100,91.7
+Amjad,Almabadi,1125574242,C1,90,60,100,80,100,80,100,80,80,100,80,80,40,81.7
+Reda,Alnakhli,1125595833,B1,95,100,40,100,80,80,100,100,80,60,60,40,40,73.3
+Mohammed,Aljohani,1125803419,C1,100,80,100,60,100,100,80,100,100,100,100,100,100,93.3
+Faleh,Hakami,1126066040,A2,100,100,60,100,80,100,80,80,100,100,80,100,100,90.0
+SALMAN,ALZAHRANI,1126202959,B2,85,60,60,80,20,60,80,100,60,80,60,60,100,68.3
+Bandar,Alweldi,1126384872,B1,90,100,100,80,80,100,80,100,80,100,80,100,100,91.7
+Khalid,Alkhaibari,1126656899,C1,95,80,100,80,60,60,100,100,100,60,100,80,100,85.0
+Hatim,Aljohani,1126922192,B2,80,100,100,100,100,100,100,100,100,100,100,100,100,100.0
+Azzam,Sufyani,1127250924,B2,95,60,40,80,80,100,100,80,100,100,100,100,100,86.7
+Abdulaziz,ALbadrani,1127582748,A2,85,80,80,100,80,0,60,80,100,80,80,80,80,75.0
+Ayoub,Alyoubi,1127599049,C1,100,40,100,60,20,20,80,100,100,80,40,40,80,63.3
+Hamed,Alhazmi,1127701298,B2,100,80,100,100,100,100,100,100,100,100,80,100,80,95.0
+Abdulrahman,Mulla,1127713228,A2,70,40,100,100,100,100,100,100,80,80,100,100,100,91.7
+Omar,Alyoubi,1128271010,C2,100,100,80,100,100,100,100,100,100,100,100,100,100,98.3
+ahmed,aljohani,1128552997,B1,95,60,100,80,100,100,80,100,80,80,80,80,100,86.7
+Khaled,Safrh,1128758396,B2,80,60,100,100,100,100,100,100,100,100,80,100,100,95.0
+Abdulrahman,Alsubhi,1129257000,B2,85,100,100,100,100,100,100,100,100,100,100,100,100,100.0
+Mohammed,Alshanqiti,1129917389,C1,85,80,80,100,40,80,60,80,100,100,100,80,100,83.3
+Sultan,Abu Qanian,1130929159,B2,100,80,100,80,80,100,100,100,100,100,100,60,100,91.7
+FARES,ALMUWALLAD,1131515817,C1,95,100,80,100,100,80,100,100,100,100,80,100,100,95.0
+Essam,Almowalad,1131890483,B2,100,100,100,80,100,100,100,100,100,100,100,100,100,98.3
+Basil,Alghamdi,1132563097,C1,95,60,80,40,100,100,100,100,80,60,40,20,80,71.7
+"Al jorfi","Al jorfi",1133043826,C1,75,80,100,100,100,100,80,100,100,100,100,100,100,96.7
+ODY,Aljohani,1133356624,C1,95,60,80,80,100,80,80,100,100,100,100,100,100,90.0
+Sahal,Alhawsah,1133634616,B1,95,60,100,100,100,100,100,100,100,100,100,100,100,96.7
+Awad,AL harbi,1137048029,B2,95,80,80,100,100,100,100,80,100,100,80,100,80,91.7
+Hamzah,Hawsawi,1137148894,B2,90,20,60,40,40,60,80,100,100,100,60,60,80,66.7
+Ahmed,Al Amri,1139316770,B1,90,20,100,80,80,100,100,100,80,80,40,80,100,80.0
+Mohammed,Alhindi,1145490296,B1,65,40,100,100,100,100,100,100,80,100,100,80,100,91.7
+`;
+
+const ENGLISH_SCORES_DATA = `First Name	Last Name	ID	Adjusted Score	Adjusted CEFR
+Talal	Alghamdi	1097026437	73	C1
+Almojerah	Attar	1100572021	60	B2
+Ahmad	Hassan	1101502894	41	B1
+Bassam	Alamri	1103514483	85	C2
+AYED	ALHARBI	1103586689	40	B1
+Mohammed	Alsulami	1105648958	75	C1
+Hamad	Alqahtani	1107065607	31	A2
+Tariq	Al Bahri	1107365122	38	B1
+Moayad	Alnakhly	1107635631	49	B2
+Anas	Bin Jahlan	1108352251	68	C1
+Mohammed	Alnakhli	1108956747	68	C1
+SULAIMAN	ALMUBAEED	1109273829	21	A2
+Mohammed	Alzubaidi	1109782076	49	B2
+Mohammed	Basha	1110195565	29	A2
+Abdulrhman	ALghamdi	1110307236	73	C1
+zeyad	Althubyani	1110547005	42	B1
+Alwalid	Aljohani	1110835277	40	B1
+Ayoub	Alhedaithi	1111262331	64	C1
+khalid	alotaibi	1111567580	58	B2
+Hisham	ALHARBI	1111625933	52	B2
+Ibrahim	Aljuhani	1111643670	50	B2
+Abdulrahman	Alganawi	1112306996	42	B1
+Faisal	Alsharif	1112386626	58	B2
+Naif	ALqawsi	1112676356	67	C1
+Ali	Alhajjj	1113233009	77	C1
+Badr	Alnoman	1113248320	56	B2
+Hassan	Almutawah	1113538183	72	C1
+Ali	Alnakhli	1113562969	39	B1
+Abdullah	Kubaisi	1113630840	53	B2
+Omar	Aljohani	1113697096	61	B2
+Alharith	Alahmadi	1113799769	76	C1
+Faisal	Alshammari	1114304635	78	C1
+Ahmed	Alnakhli	1114801309	59	B2
+YAZEED	ALZAHRANI	1115057885	38	B1
+MURTADHA	ALZEER	1115072413	49	B2
+Ali	Al Nasser	1115162180	75	C1
+Sultan	Al juhani	1115184424	24	A2
+Mohammad	Bawadoud	1115239285	75	C1
+Abdulrhman	Aljohani	1115281659	46	B1
+YASIR	Alsayed	1115393686	36	B1
+Ahmed	Bagazal	1116241603	36	B1
+Abdulaziz	Alzhrani	1116317726	71	C1
+Maher	Alghamdi	1116735828	67	C1
+Basil	Altalhi	1116768688	28	A2
+Yousef	Merdad	1116829688	64	C1
+ABDULRAHMAN	ALHBAISHI	1116886712	61	B2
+ABDULELAH	ALSIDLANI	1117316065	78	C1
+Abdulaziz	Alharbi	1117980779	24	A2
+Abdullah	Albalwi	1118240009	34	B1
+Aseel	Alghamdi	1118394038	66	C1
+Mohammed	Almhyawy	1118422110	43	B1
+Abdallah	Abujabal	1118851615	40	B1
+Muhannad	Maryudah	1118995586	74	C1
+wafi	Alharbi	1119390266	34	B1
+Waleed	Almazmumi	1119666343	57	B2
+ABDULKARIM	ALHOSAH	1119803201	77	C1
+Muath	Alamri	1120303803	36	B1
+YOUSEF	ALRASHIDI	1120425812	71	C1
+Baher	AlNakhli	1120450695	29	A2
+ZIYAD	AlJOHANI	1120571284	34	B1
+Mohsen	Aljohani	1121061723	53	B2
+Raed	Aloufi	1121353278	35	B1
+Abdullah	Alamri	1121374746	42	B1
+Osama	Alharbi	1121381949	84	C2
+Mohammed	Alharbi	1121432114	49	B2
+Abdulaziz	Turson	1121566291	84	C2
+Abdoalrhman	Mastor	1122050998	28	A2
+Ahmed	Aljuhani	1122087560	85	C2
+Hamzah	Alobaid	1122259078	41	B1
+ABDULKARIM	ALZEER	1122271784	73	C1
+Bandar	Alotabi	1122600008	30	A2
+Mohammed	Naeeb Alharm	1122608837	38	B1
+AHMED	Madadin	1122655275	30	A2
+Motaz	Alsyed	1122834383	47	B1
+Mohammed	Shamah	1122978982	57	B2
+Omar	Aharbi	1123131961	57	B2
+Emad	Alrashdi	1123150714	58	B2
+Anas	ALMEHMADI	1123165266	54	B2
+Abdullah	Alharbi	1123432419	84	C2
+Ziyad	Alghamdi	1123474247	82	C2
+Abdulslam	Alqarni	1123494203	20	A2
+Yazeed	Aljohani	1123532432	68	C1
+Ahmed	Alhawsawi	1123585232	36	B1
+Yazab	Altalhi	1123675918	15	A1
+Mohammed	Alzahrani	1124123462	33	B1
+Khalid	Bugheil	1124244714	82	C2
+Ilyas	Aldhahri	1124490044	57	B2
+Hani	Alsulami	1124731322	59	B2
+Ahmed	Alraygi	1125271625	77	C1
+Amjad	Almabadi	1125574242	71	C1
+Reda	Alnakhli	1125595833	36	B1
+Mohammed	Aljohani	1125803419	68	C1
+Faleh	Hakami	1126066040	30	A2
+SALMAN	ALZAHRANI	1126202959	49	B2
+Bandar	Alweldi	1126384872	33	B1
+Khalid	Alkhaibari	1126656899	69	C1
+Hatim	Aljohani	1126922192	48	B2
+Azzam	Sufyani	1127250924	56	B2
+Abdulaziz	ALbadrani	1127582748	23	A2
+Ayoub	Alyoubi	1127599049	78	C1
+Hamed	Alhazmi	1127701298	49	B2
+Abdulrahman	Mulla	1127713228	18	A2
+Omar	Alyoubi	1128271010	88	C2
+ahmed	aljohani	1128552997	40	B1
+Khaled	Safrh	1128758396	54	B2
+Abdulrahman	Alsubhi	1129257000	60	B2
+Mohammed	Alshanqiti	1129917389	69	C1
+Sultan	Abu Qanian	1130929159	58	B2
+FARES	ALMUWALLAD	1131515817	69	C1
+Essam	Almowalad	1131890483	50	B2
+Basil	Alghamdi	1132563097	68	C1
+Al jorfi	Al jorfi	1133043826	70	C1
+ODY	Aljohani	1133356624	73	C1
+Sahal	Alhawsah	1133634616	47	B1
+Awad	AL harbi	1137048029	59	B2
+Hamzah	Hawsawi	1137148894	52	B2
+Ahmed	Al Amri	1139316770	42	B1
+Mohammed	Alhindi	1145490296	42	B1
+`;
+
+
+export const parseStudentData = (): Student[] => {
+    // 1. Parse English scores into a map for easy lookup
+    const englishScoresMap = new Map<string, { score: number, cefr: string }>();
+    const englishLines = ENGLISH_SCORES_DATA.trim().split('\n').slice(1);
+    englishLines.forEach(line => {
+        const [firstName, lastName, id, score, cefr] = line.split('\t');
+        if (id && score && cefr) {
+            englishScoresMap.set(id.trim(), { score: parseInt(score.trim(), 10), cefr: cefr.trim() });
+        }
+    });
+
+    // 2. Parse technical scores and merge with English scores
+    const lines = CSV_DATA.trim().split('\n');
+    const studentLines = lines.slice(1);
+    
+    const gradeHeaderNames: { [key: number]: string } = {
+        4: 'H&S', 5: 'Calculus', 6: 'Applied Statics', 7: 'Applied Statistics', 
+        8: 'Applied Thermodynamics', 9: 'General Chemistry', 10: 'General Physics', 
+        11: 'Industrial Electricity', 12: 'Industrial Safety', 13: 'Industrial Supervision',
+        14: 'Machining Processes', 15: 'Materials Technology', 16: 'Plant Maintenance'
+    };
+    const gradeColumnIndices = Object.keys(gradeHeaderNames).map(Number);
+
+    const studentsWithAllScores: Omit<Student, 'rank'>[] = studentLines.map(line => {
+        const values = line.split(',').map(v => v.trim().replace(/^"|"$/g, ''));
+        
+        const id = values[2];
+        const englishData = englishScoresMap.get(id) || { score: 0, cefr: 'N/A' };
+
+        const grades: Grade[] = [];
+        gradeColumnIndices.forEach(index => {
+            const subject = gradeHeaderNames[index];
+            const score = parseInt(values[index], 10) || 0;
+            if (subject) {
+                 grades.push({ subject, score });
+            }
+        });
+
+        const totalScore = grades.reduce((sum, grade) => sum + grade.score, 0);
+        const average = grades.length > 0 ? parseFloat((totalScore / grades.length).toFixed(1)) : 0;
+        const status = grades.every(grade => grade.score >= 60) ? 'Pass' : 'Fail';
+
+        // Calculate combined average with 70% weight for tech and 30% for English
+        const normalizedEnglishScore = (englishData.score / 96) * 100;
+        const combinedAverage = parseFloat(((average * 0.7) + (normalizedEnglishScore * 0.3)).toFixed(1));
+
+        return {
+            firstName: values[0],
+            lastName: values[1],
+            id,
+            cefr: englishData.cefr, // Use the new CEFR from English data
+            grades,
+            average,
+            status,
+            englishScore: englishData.score,
+            combinedAverage,
+        };
+    });
+
+    // 3. Calculate rank based on the new combined average score
+    const sortedStudents = studentsWithAllScores.sort((a, b) => b.combinedAverage - a.combinedAverage);
+
+    return sortedStudents.map((student, index) => ({
+        ...student,
+        rank: index + 1,
+    }));
+};
