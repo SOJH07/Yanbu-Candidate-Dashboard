@@ -1,4 +1,5 @@
 
+
 import React, { useMemo } from 'react';
 import { Student, Translations, Language } from '../types';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, LabelList, Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Legend } from 'recharts';
@@ -149,6 +150,24 @@ const Dashboard: React.FC<DashboardProps> = ({ students, t, language }) => {
         return { totalStudents, passRate, avgTechScore, avgEnglishScore, cefrDistribution, combinedAverageDistribution, passFailData, avgCategoryScores };
     }, [students, t]);
 
+     const CustomPieTooltip = ({ active, payload }: any) => {
+        if (active && payload && payload.length) {
+            const data = payload[0];
+            const color = data.payload.color;
+            return (
+                <div style={tooltipStyle} className="text-sm">
+                    <div className="flex items-center mb-1">
+                         <div style={{ width: 10, height: 10, background: color, marginRight: 8, borderRadius: '2px' }}></div>
+                        <span className="font-bold">{data.name}</span>
+                    </div>
+                    <p>{`${data.value} ${t.candidates}`}</p>
+                </div>
+            );
+        }
+        return null;
+    };
+
+
     return (
         <div className="bg-white/50 dark:bg-eerie-black-800/50 p-6 rounded-xl shadow-lg border border-slate-gray/20">
             <h2 className="text-2xl font-bold mb-6 text-eerie-black dark:text-white">{t.dashboardTitle}</h2>
@@ -182,7 +201,7 @@ const Dashboard: React.FC<DashboardProps> = ({ students, t, language }) => {
                                 </Pie>
                                 <Tooltip
                                     cursor={{ fill: 'transparent' }}
-                                    contentStyle={tooltipStyle}
+                                    content={<CustomPieTooltip />}
                                 />
                                 <Legend iconSize={10} wrapperStyle={{fontSize: '12px'}} layout="vertical" verticalAlign="middle" align={language === 'ar' ? 'left' : 'right'} />
                                 <text x="50%" y="48%" textAnchor="middle" dominantBaseline="middle" className="text-3xl font-bold fill-eerie-black dark:fill-white">
@@ -234,7 +253,7 @@ const Dashboard: React.FC<DashboardProps> = ({ students, t, language }) => {
                                     cursor={{ stroke: '#B5D5BB', strokeWidth: 1, fill: 'rgba(181, 213, 187, 0.1)' }}
                                     content={<CustomRadarTooltip />}
                                 />
-                                <Radar name={t.average} dataKey="average" stroke="#62B766" fill="#62B766" fillOpacity={0.6} activeDot={{ r: 7, stroke: 'rgba(255,255,255,0.8)', strokeWidth: 2, fill: '#62B766' }} />
+                                <Radar name={t.average} dataKey="average" stroke="#62B766" fill="#62B766" fillOpacity={0.6} activeDot={{ r: 8, stroke: 'rgba(255,255,255,0.8)', strokeWidth: 2, fill: '#62B766' }} />
                             </RadarChart>
                         </ResponsiveContainer>
                     </div>

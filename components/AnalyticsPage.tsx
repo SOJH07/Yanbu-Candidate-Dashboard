@@ -1,6 +1,3 @@
-
-
-
 import React, { useMemo } from 'react';
 import { Student, Translations, Language, Grade } from '../types';
 import { Sankey, ResponsiveContainer, ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine, ZAxis, Label, Cell, Legend } from 'recharts';
@@ -22,7 +19,7 @@ const cefrColors: { [key: string]: string } = {
 const tooltipStyle = {
     backgroundColor: 'rgba(29, 30, 28, 0.9)',
     border: '1px solid rgba(112, 127, 152, 0.2)',
-    color: '#E9EEF0',
+    color: '#FFFFFF',
     borderRadius: '8px',
     boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
     padding: '8px 12px',
@@ -164,13 +161,13 @@ const SankeyChart: React.FC<{ students: Student[], t: Translations, language: La
                     data={sankeyData}
                     nodePadding={50}
                     margin={{ top: 20, right: 150, bottom: 20, left: 150 }}
-                    link={{ stroke: 'url(#sankeyLinkGradient)', strokeOpacity: 1 }}
+                    link={{ stroke: 'url(#sankeyLinkGradient)', strokeOpacity: 0.7 }}
                     node={<CustomSankeyNode sankeyNodeColors={sankeyNodeColors} language={language} />}
                 >
                      <defs>
                         <linearGradient id="sankeyLinkGradient" x1="0" y1="0" x2="1" y2="0">
-                            <stop offset="0%" stopColor="#a9d9b1" stopOpacity="0.5" />
-                            <stop offset="100%" stopColor="#62B766" stopOpacity="0.8" />
+                            <stop offset="0%" stopColor="#a9d9b1" stopOpacity="0.6" />
+                            <stop offset="100%" stopColor="#62B766" stopOpacity="1" />
                         </linearGradient>
                     </defs>
                      <Tooltip 
@@ -214,7 +211,7 @@ const TalentMatrix: React.FC<{ students: Student[], t: Translations, language: L
     };
 
     const QuadrantLabel: React.FC<{ text: string, position: string}> = ({ text, position }) => (
-        <div className={`absolute ${position} p-2 text-xs font-bold text-slate-gray/60 dark:text-slate-gray/50 uppercase tracking-wider`}>{text}</div>
+        <div className={`absolute ${position} p-2 text-xs font-bold text-slate-gray/50 dark:text-slate-gray/40 uppercase tracking-wider`}>{text}</div>
     );
 
     const legendLevels = ['C2', 'C1', 'B2', 'B1', 'A2', 'A1'];
@@ -227,23 +224,22 @@ const TalentMatrix: React.FC<{ students: Student[], t: Translations, language: L
                 <QuadrantLabel text={t.developmentFocus} position={`bottom-0 ${language === 'ar' ? 'right-0' : 'left-0'}`} />
                 <QuadrantLabel text={t.technicalExperts} position={`bottom-0 ${language === 'ar' ? 'left-0' : 'right-0'}`} />
                 <ResponsiveContainer width="100%" height="100%">
-                    <ScatterChart margin={{ top: 30, right: 30, bottom: 50, left: 40 }}>
+                    <ScatterChart margin={{ top: 30, right: 30, bottom: 60, left: 40 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="rgba(112, 127, 152, 0.2)" />
-                        <XAxis type="number" dataKey="x" name={t.techAverage} unit="" domain={[0, 100]} stroke="#707F98">
-                            <Label value={t.techAverage} offset={-30} position="insideBottom" className="fill-slate-gray dark:fill-slate-gray/80" />
+                        <XAxis type="number" dataKey="x" name={t.techAverage} unit="" domain={[0, 100]} stroke="#707F98" tick={{ fontSize: 12 }}>
+                            <Label value={t.techAverage} offset={-40} position="insideBottom" className="fill-slate-gray dark:fill-anti-flash-white/80" />
                         </XAxis>
-                        <YAxis type="number" dataKey="y" name={t.englishScore} unit="" domain={[0, 100]} stroke="#707F98">
-                             <Label value={t.englishScore} angle={-90} offset={-25} position="insideLeft" style={{ textAnchor: 'middle' }} className="fill-slate-gray dark:fill-slate-gray/80" />
+                        <YAxis type="number" dataKey="y" name={t.englishScore} unit="" domain={[0, 100]} stroke="#707F98" tick={{ fontSize: 12 }}>
+                             <Label value={t.englishScore} angle={-90} offset={-35} position="insideLeft" style={{ textAnchor: 'middle' }} className="fill-slate-gray dark:fill-anti-flash-white/80" />
                         </YAxis>
                         <Tooltip cursor={{ strokeDasharray: '3 3' }} content={<CustomTooltip />} />
-                        <ReferenceLine x={avgTech} stroke="#E77373" strokeDasharray="4 4">
-                             <Label value={`${t.average} (${avgTech.toFixed(1)})`} position="top" fill="#E77373" fontSize={11} offset={10}/>
+                        <ReferenceLine x={avgTech} stroke="#707F98" strokeDasharray="4 4">
+                             <Label value={`Avg: ${avgTech.toFixed(1)}`} position="insideBottomLeft" fill="#707F98" fontSize={12} offset={10}/>
                         </ReferenceLine>
-                        <ReferenceLine y={avgEnglish} stroke="#E77373" strokeDasharray="4 4">
-                             <Label value={`${t.average} (${avgEnglish.toFixed(1)})`} position="right" fill="#E77373" fontSize={11} offset={10}/>
+                        <ReferenceLine y={avgEnglish} stroke="#707F98" strokeDasharray="4 4">
+                             <Label value={`Avg: ${avgEnglish.toFixed(1)}`} position="insideTopLeft" fill="#707F98" fontSize={12} offset={10}/>
                         </ReferenceLine>
-                        <ZAxis type="number" range={[80, 80]} />
-                        {/* FIX: Replaced single Scatter with Cells and manual legend with multiple Scatter components to let recharts generate the legend automatically, avoiding the payload prop issue. */}
+                        <ZAxis type="number" range={[150, 150]} />
                         {legendLevels.map(level => {
                             const levelData = data.filter(d => d.cefr === level);
                             if (levelData.length === 0) return null;
@@ -259,7 +255,7 @@ const TalentMatrix: React.FC<{ students: Student[], t: Translations, language: L
                                 />
                             );
                         })}
-                        <Legend iconType="circle" verticalAlign="bottom" wrapperStyle={{ bottom: 0, fontSize: '12px' }}/>
+                        <Legend iconType="circle" verticalAlign="bottom" wrapperStyle={{ paddingTop: '20px', fontSize: '12px' }}/>
                     </ScatterChart>
                 </ResponsiveContainer>
             </div>
@@ -302,6 +298,20 @@ const SubjectPerformance: React.FC<{ students: Student[], t: Translations }> = (
 
         return result;
     }, [students]);
+    
+    const CustomSubjectTooltip = ({ active, payload, label }: any) => {
+        if (active && payload && payload.length) {
+            const data = payload[0];
+            return (
+                <div style={tooltipStyle} className="text-sm">
+                    <p className="font-semibold mb-1">{label}</p>
+                    <p>{`${data.name}: ${data.value.toFixed(1)}`}</p>
+                </div>
+            );
+        }
+        return null;
+    };
+
 
     return (
          <div className="bg-white dark:bg-eerie-black-800 p-6 rounded-xl shadow-lg border border-slate-gray/20">
@@ -312,38 +322,34 @@ const SubjectPerformance: React.FC<{ students: Student[], t: Translations }> = (
                     const chartHeight = data.subjects.length * 35 + 40;
                     return (
                         <div key={category} className="p-4 rounded-lg bg-anti-flash-white/50 dark:bg-eerie-black/50 border border-slate-gray/20">
-                            <div className="flex justify-between items-baseline mb-2">
-                                <h4 className="font-semibold text-eerie-black dark:text-white text-base">{category}</h4>
-                                <span className="text-sm font-bold text-primary-600 dark:text-primary-400">Avg: {data.categoryAverage.toFixed(1)}</span>
-                            </div>
+                            <h4 className="font-semibold text-eerie-black dark:text-white text-base mb-2">{category}</h4>
                             <ResponsiveContainer width="100%" height={chartHeight}>
                                 <ScatterChart
                                     data={data.subjects}
                                     layout="vertical"
-                                    margin={{ top: 10, right: 30, bottom: 10, left: 120 }}
+                                    margin={{ top: 10, right: 30, bottom: 20, left: 20 }}
                                 >
                                     <CartesianGrid stroke="rgba(112, 127, 152, 0.1)" horizontal={false} />
-                                    <XAxis type="number" dataKey="average" name={t.average} domain={[0, 100]} tick={{ fontSize: 10, fill: '#707F98' }} />
+                                    <XAxis type="number" dataKey="average" name={t.average} domain={[0, 100]} tick={{ fontSize: 12, fill: '#707F98' }} />
                                     <YAxis 
                                         type="category" 
                                         dataKey="subject" 
-                                        name="Subject" 
+                                        name={t.subject} 
                                         width={120} 
-                                        tick={{ fontSize: 11, fill: '#707F98', width: 140 }} 
+                                        tick={{ fontSize: 12, fill: '#707F98' }} 
                                         interval={0}
                                     />
-                                    <Tooltip 
-                                        cursor={{ strokeDasharray: '3 3' }} 
-                                        contentStyle={tooltipStyle}
-                                        formatter={(value: string | number) => typeof value === 'number' ? value.toFixed(1) : value}
+                                    <Tooltip
+                                        cursor={{ strokeDasharray: '3 3' }}
+                                        content={<CustomSubjectTooltip />}
                                     />
                                     <ReferenceLine x={60} stroke="#E77373" strokeDasharray="3 3">
-                                        <Label value={t.pass} position="insideTopLeft" fill="#E77373" fontSize={11} offset={-2} />
+                                        <Label value={`${t.pass}: 60`} position="bottom" fill="#E77373" fontSize={12} offset={5} />
                                     </ReferenceLine>
                                     <ReferenceLine x={data.categoryAverage} stroke="#62B766" strokeDasharray="3 3">
-                                         <Label value={`${t.average} (${data.categoryAverage.toFixed(1)})`} position="top" fill="#62B766" fontSize={11} offset={5} />
+                                         <Label value={`${t.average}: ${data.categoryAverage.toFixed(1)}`} position="top" className="fill-eerie-black dark:fill-white font-semibold" fontSize={12} offset={5} />
                                     </ReferenceLine>
-                                    <ZAxis type="number" range={[100, 100]} />
+                                    <ZAxis type="number" range={[150, 150]} />
                                     <Scatter name={t.average} zAxisId={0}>
                                         {data.subjects.map((entry, index) => {
                                             const score = entry.average;
