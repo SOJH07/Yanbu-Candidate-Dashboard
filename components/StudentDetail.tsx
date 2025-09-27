@@ -2,7 +2,7 @@
 
 import React, { useRef, useMemo, useState, useImperativeHandle, forwardRef } from 'react';
 import { Student, Translations, Language, Grade } from '../types';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, ReferenceLine, Label, LabelList, Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, ReferenceLine, Label, LabelList, Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Legend } from 'recharts';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 import CefrBadge from './CefrBadge';
@@ -32,7 +32,8 @@ const TAPHeader: React.FC<{ student: Student; t: Translations }> = ({ student, t
     </div>
 );
 
-const Page1Content: React.FC<{ student: Student; t: Translations; categorizedGrades: { [key: string]: Grade[] } }> = ({ student, t, categorizedGrades }) => {
+const Page1Content: React.FC<{ student: Student; t: Translations; categorizedGrades: { [key: string]: Grade[] }, pageData: any[], language: Language }> = ({ student, t, categorizedGrades, pageData, language }) => {
+    
     const categoryAverages = useMemo(() => {
         return Object.keys(categorizedGrades)
             .map(category => {
@@ -43,7 +44,7 @@ const Page1Content: React.FC<{ student: Student; t: Translations; categorizedGra
             })
             .filter(cat => cat.score > 0);
     }, [categorizedGrades]);
-
+    
     const sortedCategories = useMemo(() => 
         [...categoryAverages].sort((a, b) => b.score - a.score), 
     [categoryAverages]);
@@ -65,23 +66,31 @@ const Page1Content: React.FC<{ student: Student; t: Translations; categorizedGra
         </svg>
     );
 
+    const radarNameMap = {
+        'Candidate': student.firstName,
+        'Cohort Average': t.average
+    };
+
     return (
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-center">
             <div className="h-80 p-4 rounded-lg bg-anti-flash-white/50 dark:bg-eerie-black/50 border border-slate-gray/20">
                 <ResponsiveContainer width="100%" height="100%">
-                    <RadarChart cx="50%" cy="50%" outerRadius="80%" data={categoryAverages}>
+                    <RadarChart cx="50%" cy="50%" outerRadius="75%" data={pageData}>
                         <PolarGrid stroke="rgba(112, 127, 152, 0.2)" />
                         <PolarAngleAxis dataKey="subject" tick={{ fontSize: 11, fill: '#707F98' }} />
                         <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
                         <Tooltip
                             contentStyle={{
                                 backgroundColor: 'rgba(29, 30, 28, 0.9)',
-                                border: 'none',
+                                border: '1px solid rgba(112, 127, 152, 0.2)',
                                 color: '#E9EEF0',
                                 borderRadius: '8px',
                             }}
+                            formatter={(value: any, name: any) => [value, radarNameMap[name] || name]}
                         />
-                        <Radar name="Average Score" dataKey="score" stroke="#62B766" fill="#62B766" fillOpacity={0.6} />
+                        <Radar name="Candidate" dataKey="candidateScore" stroke="#62B766" fill="#62B766" fillOpacity={0.6} activeDot={{ r: 8, stroke: '#fff', strokeWidth: 2, fill: '#62B766' }} />
+                        <Radar name="Cohort Average" dataKey="cohortScore" stroke="#707F98" fill="#707F98" fillOpacity={0.2} activeDot={{ r: 6, fill: '#707F98' }} />
+                        <Legend verticalAlign="top" height={36} iconSize={10} formatter={(value) => <span className="text-eerie-black dark:text-gray-300 text-xs">{radarNameMap[value] || value}</span>} />
                     </RadarChart>
                 </ResponsiveContainer>
             </div>
@@ -152,19 +161,19 @@ const Page1Content: React.FC<{ student: Student; t: Translations; categorizedGra
 };
 
 const ScoreBar: React.FC<{ subject: string; score: number }> = ({ subject, score }) => {
-    const getScoreColor = (s: number) => {
-        if (s < 60) return 'bg-accent';
-        if (s >= 85) return 'bg-primary-500';
-        return 'bg-secondary';
+    const getScoreGradient = (s: number) => {
+        if (s < 60) return 'from-red-500 to-light-coral-red';
+        if (s >= 85) return 'from-primary-500 to-electric-green';
+        return 'from-slate-500 to-slate-gray';
     };
 
     return (
         <div className="py-2">
             <div className="text-sm text-slate-gray mb-1.5">{subject}</div>
             <div className="flex items-center gap-3">
-                <div className="w-full bg-anti-flash-white dark:bg-eerie-black-800 rounded-full h-2.5 shadow-inner">
+                <div className="w-full bg-anti-flash-white dark:bg-eerie-black-800 rounded-full h-3 shadow-inner">
                     <div
-                        className={`${getScoreColor(score)} h-2.5 rounded-full transition-all duration-500 ease-out`}
+                        className={`bg-gradient-to-r ${getScoreGradient(score)} h-3 rounded-full transition-all duration-500 ease-out`}
                         style={{ width: `${score}%` }}
                     />
                 </div>
@@ -196,8 +205,8 @@ const Page2Content: React.FC<{ categorizedGrades: { [key: string]: Grade[] } }> 
     );
 };
 
-const PrintableTAP = forwardRef<any, { student: Student; t: Translations; language: Language; categorizedGrades: { [key: string]: Grade[] } }>(
-    ({ student, t, language, categorizedGrades }, ref) => {
+const PrintableTAP = forwardRef<any, { student: Student; t: Translations; language: Language; categorizedGrades: { [key: string]: Grade[] }, pageData: any[] }>(
+    ({ student, t, language, categorizedGrades, pageData }, ref) => {
         const page1Ref = useRef<HTMLDivElement>(null);
         const page2Ref = useRef<HTMLDivElement>(null);
 
@@ -225,7 +234,7 @@ const PrintableTAP = forwardRef<any, { student: Student; t: Translations; langua
         return (
             <div>
                 <PageWrapper refProp={page1Ref}>
-                    <Page1Content student={student} t={t} categorizedGrades={categorizedGrades} />
+                    <Page1Content student={student} t={t} categorizedGrades={categorizedGrades} pageData={pageData} language={language} />
                 </PageWrapper>
                 <PageWrapper refProp={page2Ref}>
                     <Page2Content categorizedGrades={categorizedGrades} />
@@ -238,12 +247,13 @@ const PrintableTAP = forwardRef<any, { student: Student; t: Translations; langua
 
 interface StudentDetailProps {
     student: Student;
+    students: Student[];
     onClose: () => void;
     t: Translations;
     language: Language;
 }
 
-const StudentDetail: React.FC<StudentDetailProps> = ({ student, onClose, t, language }) => {
+const StudentDetail: React.FC<StudentDetailProps> = ({ student, students, onClose, t, language }) => {
     const [currentPage, setCurrentPage] = useState<'overview' | 'scores'>('overview');
     const [isExporting, setIsExporting] = useState(false);
     const printRef = useRef<any>(null);
@@ -267,6 +277,45 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, onClose, t, lang
 
         return categories;
     }, [student.grades]);
+    
+    const pageData = useMemo(() => {
+        // Candidate's scores
+        const studentCategoryAverages = Object.keys(subjectCategories).map(category => {
+            const grades = student.grades.filter(g => subjectCategories[category].includes(g.subject));
+            const avg = grades.length > 0 ? grades.reduce((sum, g) => sum + g.score, 0) / grades.length : 0;
+            return { subject: category, score: parseFloat(avg.toFixed(1)) };
+        });
+
+        // Cohort average scores
+        const cohortScores: { [key: string]: number[] } = {};
+        Object.keys(subjectCategories).forEach(cat => cohortScores[cat] = []);
+        students.forEach(s => {
+            s.grades.forEach(g => {
+                for (const category in subjectCategories) {
+                    if (subjectCategories[category].includes(g.subject)) {
+                        cohortScores[category].push(g.score);
+                        return;
+                    }
+                }
+            });
+        });
+        const cohortCategoryAverages = Object.keys(cohortScores).map(category => {
+            const scores = cohortScores[category];
+            const avg = scores.length > 0 ? scores.reduce((sum, score) => sum + score, 0) / scores.length : 0;
+            return { subject: category, score: parseFloat(avg.toFixed(1)) };
+        });
+
+        // Merge data for RadarChart
+        return studentCategoryAverages.map(sCat => {
+            const cohortCat = cohortCategoryAverages.find(cCat => cCat.subject === sCat.subject);
+            return {
+                subject: sCat.subject,
+                candidateScore: sCat.score,
+                cohortScore: cohortCat ? cohortCat.score : 0,
+            };
+        });
+    }, [student, students]);
+
 
     const handleExportPDF = async () => {
         setIsExporting(true);
@@ -325,7 +374,7 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, onClose, t, lang
 
     return (
         <div className="bg-white dark:bg-eerie-black-800 p-6 rounded-xl shadow-lg border border-slate-gray/20 h-full flex flex-col relative">
-            {isExporting && <div style={{ position: 'absolute', top: 0, left: '-9999px' }}><PrintableTAP ref={printRef} student={student} t={t} language={language} categorizedGrades={categorizedGrades} /></div>}
+            {isExporting && <div style={{ position: 'absolute', top: 0, left: '-9999px' }}><PrintableTAP ref={printRef} student={student} t={t} language={language} categorizedGrades={categorizedGrades} pageData={pageData} /></div>}
             
             <div className="flex-shrink-0">
                 <button onClick={onClose} className={`absolute top-4 ${language === 'ar' ? 'left-4' : 'right-4'} text-slate-gray/60 hover:text-eerie-black dark:hover:text-white transition z-10`}>
@@ -367,8 +416,8 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, onClose, t, lang
                 </div>
             </div>
             
-            <div className="flex-grow overflow-y-auto pr-2">
-                {currentPage === 'overview' && <Page1Content student={student} t={t} categorizedGrades={categorizedGrades} />}
+            <div className="flex-grow overflow-y-auto pr-2 custom-scrollbar">
+                {currentPage === 'overview' && <Page1Content student={student} t={t} categorizedGrades={categorizedGrades} pageData={pageData} language={language} />}
                 {currentPage === 'scores' && <Page2Content categorizedGrades={categorizedGrades} />}
             </div>
             

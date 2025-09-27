@@ -1,10 +1,10 @@
-
 import { Translations } from '../types';
 
 export const translations: Translations = {
     en: {
         dashboard: "Dashboard",
         candidates: "Candidates",
+        analytics: "Analytics",
         dashboardTitle: "Yanbu Candidate Dashboard",
         totalStudents: "Total Candidates",
         passRate: "Pass Rate",
@@ -55,10 +55,28 @@ export const translations: Translations = {
         englishProficiencyDevelopmentDesc: "Improving English skills will enhance professional communication.",
         keyStrengths: "Key Strengths",
         areasForDevelopment: "Areas for Development",
+        candidateFlow: "Candidate Flow from CEFR to Final Result",
+        correlationAnalysis: "Technical Average vs. English Score",
+        talentMatrix: "Talent Classification Matrix",
+        keyInsights: "Key Insights",
+        subjectPerformance: "Subject Category Performance Analysis",
+        highPotentials: "High Potentials",
+        technicalExperts: "Technical Experts",
+        emergingTalent: "Emerging Talent",
+        developmentFocus: "Development Focus",
+        // FIX: Added missing opening quote for the key.
+        "insight1_part1": "Candidates with C1 have",
+        "insight1_part2": "% higher pass rates than those with B1.",
+        "insight2_part1": "The subject category '",
+        "insight2_part2": "' shows the highest average score.",
+        "insight3_part1": "of Top 10 ranked candidates have a B2 level or higher.",
+        "noData": "Not enough data to compute.",
+
     },
     ar: {
         dashboard: "لوحة التحكم",
         candidates: "المرشحون",
+        analytics: "التحليلات",
         dashboardTitle: "لوحة تحكم مرشحي ينبع",
         totalStudents: "إجمالي المرشحين",
         passRate: "نسبة النجاح",
@@ -109,5 +127,20 @@ export const translations: Translations = {
         englishProficiencyDevelopmentDesc: "تحسين المهارات في اللغة الإنجليزية سيعزز التواصل المهني.",
         keyStrengths: "نقاط القوة الرئيسية",
         areasForDevelopment: "مجالات التطوير",
+        candidateFlow: "تدفق المرشحين من CEFR إلى النتيجة النهائية",
+        correlationAnalysis: "المعدل الفني مقابل درجة اللغة الإنجليزية",
+        talentMatrix: "مصفوفة تصنيف المواهب",
+        keyInsights: "رؤى أساسية",
+        subjectPerformance: "تحليل أداء فئات المواد",
+        highPotentials: "إمكانات عالية",
+        technicalExperts: "خبراء فنيون",
+        emergingTalent: "مواهب ناشئة",
+        developmentFocus: "بحاجة للتطوير",
+        "insight1_part1": "المرشحون بمستوى C1 لديهم معدلات نجاح أعلى بنسبة",
+        "insight1_part2": "% مقارنة بأصحاب مستوى B1.",
+        "insight2_part1": "فئة المواد '",
+        "insight2_part2": "' تظهر أعلى متوسط درجات.",
+        "insight3_part1": "من أفضل 10 مرشحين في الترتيب حاصلون على مستوى B2 أو أعلى.",
+        "noData": "لا توجد بيانات كافية للحساب.",
     }
 };

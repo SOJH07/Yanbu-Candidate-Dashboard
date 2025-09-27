@@ -1,10 +1,12 @@
+
 import React, { useMemo } from 'react';
-import { Student, Translations } from '../types';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, LabelList, Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from 'recharts';
+import { Student, Translations, Language } from '../types';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, LabelList, Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Legend } from 'recharts';
 
 interface DashboardProps {
     students: Student[];
     t: Translations;
+    language: Language;
 }
 
 const StatCard: React.FC<{ title: string; value: string | number; className?: string }> = ({ title, value, className }) => (
@@ -21,7 +23,24 @@ const subjectCategories: { [key: string]: string[] } = {
     'Safety & Management': ['H&S', 'Industrial Safety', 'Industrial Supervision'],
 };
 
-const Dashboard: React.FC<DashboardProps> = ({ students, t }) => {
+const cefrColors: { [key: string]: string } = {
+    'A1': '#e2f3e4', 'A2': '#c9e8cd',
+    'B1': '#a9d9b1', 'B2': '#85c790',
+    'C1': '#62B766', 'C2': '#4da255'
+};
+
+const tooltipStyle = {
+    backgroundColor: 'rgba(29, 30, 28, 0.9)',
+    border: '1px solid rgba(112, 127, 152, 0.2)',
+    color: '#E9EEF0',
+    borderRadius: '8px',
+    boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
+    padding: '8px 12px',
+    backdropFilter: 'blur(3px)',
+};
+
+
+const Dashboard: React.FC<DashboardProps> = ({ students, t, language }) => {
     
     // Custom Chart Components
     const categoryColors: { [key: string]: string } = useMemo(() => ({
@@ -31,22 +50,16 @@ const Dashboard: React.FC<DashboardProps> = ({ students, t }) => {
         'Safety\n&\nManagement': '#a9d9b1',
     }), []);
 
-    const CustomRadarDot = (props: any) => {
-        const { cx, cy, payload } = props;
-        const color = categoryColors[payload.name] || '#707F98'; 
-        return <circle cx={cx} cy={cy} r={4} fill={color} stroke="rgba(255,255,255,0.8)" strokeWidth={2} />;
-    };
-
     const CustomRadarTooltip = ({ active, payload, label }: any) => {
         if (active && payload && payload.length) {
             const color = categoryColors[label] || '#707F98';
             return (
-                 <div className="p-2 bg-eerie-black/90 text-white rounded-md border border-slate-gray/20 text-sm shadow-lg">
+                 <div style={tooltipStyle} className="text-sm">
                     <div className="flex items-center mb-1">
                         <div style={{ width: 10, height: 10, backgroundColor: color, marginRight: 8, borderRadius: '2px' }}></div>
                         <span className="font-bold">{label.replace(/\n/g, ' ')}</span>
                     </div>
-                    <p>{`${t.average}: ${payload[0].value}`}</p>
+                    <p>{`${t.average}: ${payload[0].value.toFixed(1)}`}</p>
                 </div>
             );
         }
@@ -56,10 +69,11 @@ const Dashboard: React.FC<DashboardProps> = ({ students, t }) => {
     const CustomCefrTooltip = ({ active, payload, label }: any) => {
         if (active && payload && payload.length) {
             const data = payload[0];
+            const color = (data.payload as any).fill;
             return (
-                <div className="p-2 bg-eerie-black/90 text-white rounded-md border border-slate-gray/20 text-sm shadow-lg">
+                <div style={tooltipStyle} className="text-sm">
                     <div className="flex items-center mb-1">
-                         <div style={{ width: 10, height: 10, backgroundColor: data.fill, marginRight: 8, borderRadius: '2px' }}></div>
+                         <div style={{ width: 10, height: 10, background: color, marginRight: 8, borderRadius: '2px' }}></div>
                         <span className="font-bold">{`Level ${label}`}</span>
                     </div>
                     <p>{`${data.value} ${t.candidates}`}</p>
@@ -151,24 +165,30 @@ const Dashboard: React.FC<DashboardProps> = ({ students, t }) => {
                     <div className="h-80 bg-white dark:bg-eerie-black-800 p-2 rounded-lg shadow border border-slate-gray/20">
                         <ResponsiveContainer width="100%" height="100%">
                              <PieChart>
-                                <Pie data={stats.passFailData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius="60%" outerRadius="80%" paddingAngle={5} labelLine={false}>
+                                 <defs>
+                                    <linearGradient id="passGradient" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stopColor="#62B766" stopOpacity={1} />
+                                        <stop offset="100%" stopColor="#4da255" stopOpacity={1} />
+                                    </linearGradient>
+                                    <linearGradient id="failGradient" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stopColor="#E77373" stopOpacity={1} />
+                                        <stop offset="100%" stopColor="#D95C5C" stopOpacity={1} />
+                                    </linearGradient>
+                                </defs>
+                                <Pie data={stats.passFailData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius="60%" outerRadius="85%" paddingAngle={5} labelLine={false}>
                                     {stats.passFailData.map((entry) => (
-                                        <Cell key={`cell-${entry.name}`} fill={entry.color} stroke={entry.color} />
+                                        <Cell key={`cell-${entry.name}`} fill={entry.name === t.pass ? "url(#passGradient)" : "url(#failGradient)"} stroke="none" />
                                     ))}
                                 </Pie>
                                 <Tooltip
                                     cursor={{ fill: 'transparent' }}
-                                    contentStyle={{
-                                        backgroundColor: 'rgba(29, 30, 28, 0.9)',
-                                        border: 'none',
-                                        color: '#E9EEF0',
-                                        borderRadius: '8px',
-                                    }}
+                                    contentStyle={tooltipStyle}
                                 />
+                                <Legend iconSize={10} wrapperStyle={{fontSize: '12px'}} layout="vertical" verticalAlign="middle" align={language === 'ar' ? 'left' : 'right'} />
                                 <text x="50%" y="48%" textAnchor="middle" dominantBaseline="middle" className="text-3xl font-bold fill-eerie-black dark:fill-white">
                                     {stats.passRate}
                                 </text>
-                                 <text x="50%" y="50%" dy="1.5em" textAnchor="middle" className="text-sm fill-slate-gray">
+                                 <text x="50%" y="50%" dy="1.5em" textAnchor="middle" className="text-sm fill-slate-gray dark:fill-slate-gray/80">
                                     {t.passRate}
                                 </text>
                             </PieChart>
@@ -180,20 +200,23 @@ const Dashboard: React.FC<DashboardProps> = ({ students, t }) => {
                     <div className="h-80 bg-white dark:bg-eerie-black-800 p-4 rounded-lg shadow border border-slate-gray/20">
                        <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={stats.cefrDistribution} margin={{ top: 20, right: 10, left: -10, bottom: 5 }}>
+                                <defs>
+                                    {Object.keys(cefrColors).map(level => (
+                                        <linearGradient key={`grad-${level}`} id={`cefrGradient-${level}`} x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="0%" stopColor={cefrColors[level]} stopOpacity={0.8} />
+                                            <stop offset="100%" stopColor={cefrColors[level]} stopOpacity={1} />
+                                        </linearGradient>
+                                    ))}
+                                </defs>
                                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(112, 127, 152, 0.2)" />
                                 <XAxis dataKey="name" stroke="#707F98" />
                                 <YAxis stroke="#707F98" allowDecimals={false} />
-                                <Tooltip content={<CustomCefrTooltip t={t} />} cursor={{ fill: 'rgba(112, 127, 152, 0.1)' }} />
+                                <Tooltip content={<CustomCefrTooltip />} cursor={{ fill: 'rgba(112, 127, 152, 0.1)' }} />
                                 <Bar dataKey="count" name={t.candidates}>
-                                    {stats.cefrDistribution.map((entry, index) => {
-                                        const cefrColors: {[key: string]: string} = {
-                                            'A1': '#a7b0c4', 'A2': '#8d99b5',
-                                            'B1': '#c2e0c8', 'B2': '#a2d0aa',
-                                            'C1': '#85c790', 'C2': '#62B766'
-                                        };
-                                        return <Cell key={`cell-${index}`} fill={cefrColors[entry.name] || '#707F98'} />;
-                                    })}
-                                    <LabelList dataKey="count" position="top" style={{ fill: 'var(--color-slate-gray)' }} />
+                                    {stats.cefrDistribution.map((entry, index) => (
+                                        <Cell key={`cell-${index}`} fill={`url(#cefrGradient-${entry.name})`} />
+                                    ))}
+                                    <LabelList dataKey="count" position="top" className="fill-slate-gray dark:fill-slate-gray/70 text-sm" />
                                 </Bar>
                             </BarChart>
                         </ResponsiveContainer>
@@ -203,15 +226,15 @@ const Dashboard: React.FC<DashboardProps> = ({ students, t }) => {
                     <h3 className="text-lg font-semibold mb-4 text-eerie-black dark:text-white">{t.avgScores}</h3>
                     <div className="h-80 bg-white dark:bg-eerie-black-800 p-2 rounded-lg shadow border border-slate-gray/20">
                         <ResponsiveContainer width="100%" height="100%">
-                            <RadarChart cx="50%" cy="50%" outerRadius="70%" data={stats.avgCategoryScores}>
+                            <RadarChart cx="50%" cy="50%" outerRadius="75%" data={stats.avgCategoryScores}>
                                 <PolarGrid stroke="rgba(112, 127, 152, 0.2)" />
                                 <PolarAngleAxis dataKey="name" tick={{ fontSize: 11, fill: '#707F98' }} />
                                 <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
                                 <Tooltip
                                     cursor={{ stroke: '#B5D5BB', strokeWidth: 1, fill: 'rgba(181, 213, 187, 0.1)' }}
-                                    content={<CustomRadarTooltip t={t} />}
+                                    content={<CustomRadarTooltip />}
                                 />
-                                <Radar name={t.average} dataKey="average" stroke="#62B766" fill="#62B766" fillOpacity={0.6} dot={<CustomRadarDot />} activeDot={{ r: 6, strokeWidth: 2 }} />
+                                <Radar name={t.average} dataKey="average" stroke="#62B766" fill="#62B766" fillOpacity={0.6} activeDot={{ r: 7, stroke: 'rgba(255,255,255,0.8)', strokeWidth: 2, fill: '#62B766' }} />
                             </RadarChart>
                         </ResponsiveContainer>
                     </div>
@@ -230,9 +253,9 @@ const Dashboard: React.FC<DashboardProps> = ({ students, t }) => {
                                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(112, 127, 152, 0.2)" />
                                 <XAxis dataKey="name" stroke="#707F98" />
                                 <YAxis allowDecimals={false} stroke="#707F98" />
-                                <Tooltip contentStyle={{ backgroundColor: 'rgba(29, 30, 28, 0.9)', border: 'none', color: '#E9EEF0', borderRadius: '8px' }}/>
+                                <Tooltip contentStyle={tooltipStyle} cursor={{ fill: 'rgba(112, 127, 152, 0.1)' }}/>
                                 <Bar dataKey="count" name={t.candidates} fill="url(#overallScoreGradient)">
-                                    <LabelList dataKey="count" position="top" style={{ fill: 'var(--color-slate-gray)' }} />
+                                    <LabelList dataKey="count" position="top" className="fill-slate-gray dark:fill-slate-gray/70 text-sm" />
                                 </Bar>
                             </BarChart>
                         </ResponsiveContainer>

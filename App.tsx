@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { parseStudentData } from './data/studentData';
 import { Student, Language } from './types';
@@ -8,6 +9,7 @@ import Dashboard from './components/Dashboard';
 import StudentTable from './components/StudentTable';
 import StudentDetail from './components/StudentDetail';
 import KioskView from './components/KioskView';
+import AnalyticsPage from './components/AnalyticsPage';
 import useLocalStorage from './hooks/useLocalStorage';
 
 const App: React.FC = () => {
@@ -16,7 +18,7 @@ const App: React.FC = () => {
     const [darkMode, setDarkMode] = useLocalStorage<boolean>('darkMode', false);
     const [language, setLanguage] = useLocalStorage<Language>('language', 'en');
     const [isKioskMode, setIsKioskMode] = useLocalStorage<boolean>('kioskMode', false);
-    const [activeView, setActiveView] = useLocalStorage<'dashboard' | 'candidates'>('activeView', 'dashboard');
+    const [activeView, setActiveView] = useLocalStorage<'dashboard' | 'candidates' | 'analytics'>('activeView', 'dashboard');
 
 
     useEffect(() => {
@@ -78,7 +80,10 @@ const App: React.FC = () => {
                 ) : (
                     <>
                         {activeView === 'dashboard' && (
-                           <Dashboard students={students} t={t} />
+                           <Dashboard students={students} t={t} language={language} />
+                        )}
+                         {activeView === 'analytics' && (
+                           <AnalyticsPage students={students} t={t} language={language}/>
                         )}
                         {activeView === 'candidates' && (
                             <div className="flex flex-col lg:flex-row gap-8">
@@ -89,6 +94,7 @@ const App: React.FC = () => {
                                     {selectedStudent ? (
                                         <StudentDetail 
                                             student={selectedStudent} 
+                                            students={students}
                                             onClose={() => setSelectedStudent(null)} 
                                             t={t} 
                                             language={language}

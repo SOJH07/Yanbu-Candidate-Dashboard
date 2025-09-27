@@ -9,14 +9,14 @@ interface HeaderProps {
     setLanguage: React.Dispatch<React.SetStateAction<Language>>;
     isKioskMode: boolean;
     setIsKioskMode: React.Dispatch<React.SetStateAction<boolean>>;
-    activeView: 'dashboard' | 'candidates';
-    setActiveView: React.Dispatch<React.SetStateAction<'dashboard' | 'candidates'>>;
+    activeView: 'dashboard' | 'candidates' | 'analytics';
+    setActiveView: React.Dispatch<React.SetStateAction<'dashboard' | 'candidates' | 'analytics'>>;
     t: Translations;
 }
 
 const Header: React.FC<HeaderProps> = ({ darkMode, setDarkMode, language, setLanguage, isKioskMode, setIsKioskMode, activeView, setActiveView, t }) => {
     
-    const navButtonClasses = (view: 'dashboard' | 'candidates') => {
+    const navButtonClasses = (view: 'dashboard' | 'candidates' | 'analytics') => {
         const base = 'px-4 py-2 rounded-md text-sm font-semibold transition-colors duration-200';
         if (activeView === view) {
             return `${base} bg-primary-100 dark:bg-primary-900/50 text-primary-700 dark:text-primary-300`;
@@ -32,6 +32,9 @@ const Header: React.FC<HeaderProps> = ({ darkMode, setDarkMode, language, setLan
                     <nav className="hidden md:flex items-center gap-2 p-1 bg-anti-flash-white dark:bg-eerie-black rounded-lg">
                         <button onClick={() => setActiveView('dashboard')} className={navButtonClasses('dashboard')}>
                             {t.dashboard}
+                        </button>
+                         <button onClick={() => setActiveView('analytics')} className={navButtonClasses('analytics')}>
+                            {t.analytics}
                         </button>
                         <button onClick={() => setActiveView('candidates')} className={navButtonClasses('candidates')}>
                             {t.candidates}
