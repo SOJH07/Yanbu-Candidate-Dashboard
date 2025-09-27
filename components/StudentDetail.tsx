@@ -1,4 +1,5 @@
 
+
 import React, { useRef, useMemo, useState, forwardRef, useEffect } from 'react';
 import { Student, Translations, Language, Grade } from '../types';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Legend, ResponsiveContainer, Tooltip } from 'recharts';
@@ -78,7 +79,7 @@ interface PerformanceOverviewContentProps {
 const PerformanceOverviewContent: React.FC<PerformanceOverviewContentProps> = ({ student, t, pageData, strengths, developments, isEnglishStrength, isEnglishDevelopment, isPrinting = false }) => {
     const radarNameMap = { 'Candidate': student.firstName, 'Cohort Average': t.average };
     return (
-        <div className="space-y-6 flex flex-col">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
             <div className="p-4 rounded-lg bg-anti-flash-white/50 dark:bg-eerie-black/50 border border-slate-gray/20">
                 <h3 className="text-xl font-semibold mb-2 text-eerie-black dark:text-white">{t.performanceOverview}</h3>
                 <div className="h-80">
@@ -95,7 +96,7 @@ const PerformanceOverviewContent: React.FC<PerformanceOverviewContentProps> = ({
                     </ResponsiveContainer>
                 </div>
             </div>
-            <div className="flex-grow space-y-4">
+            <div className="space-y-4">
                 <div>
                     <h4 className="text-md font-semibold text-eerie-black dark:text-gray-300 mb-2">{t.keyStrengths}</h4>
                     <ul className="space-y-2">
@@ -128,26 +129,30 @@ interface DetailedScoresContentProps {
     categorizedGrades: { [key: string]: Grade[] };
 }
 const DetailedScoresContent: React.FC<DetailedScoresContentProps> = ({ t, categorizedGrades }) => {
+    const categories = Object.keys(categorizedGrades).filter(cat => categorizedGrades[cat] && categorizedGrades[cat].length > 0);
+
     return (
-        <div className="space-y-4">
-            <h3 className="text-xl font-semibold text-eerie-black dark:text-white">{t.detailedScores}</h3>
-            {Object.keys(categorizedGrades).map((category) => {
-                const grades = categorizedGrades[category];
-                if (grades.length === 0) return null;
-                return (
-                    <div key={category} className="p-4 rounded-lg bg-anti-flash-white/50 dark:bg-eerie-black/50 border border-slate-gray/20">
-                        <h4 className="text-lg font-semibold text-eerie-black dark:text-white border-b border-slate-gray/20 pb-2 mb-2">{category}</h4>
-                        <div className="divide-y divide-slate-gray/10 dark:divide-slate-gray/80">
-                            {grades.map(grade => (
-                                <ScoreBar key={grade.subject} subject={grade.subject} score={grade.score} />
-                            ))}
+        <div>
+            <h3 className="text-xl font-semibold text-eerie-black dark:text-white mb-4">{t.detailedScores}</h3>
+            <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+                {categories.map((category) => {
+                    const grades = categorizedGrades[category];
+                    return (
+                        <div key={category} className="p-4 rounded-lg bg-anti-flash-white/50 dark:bg-eerie-black/50 border border-slate-gray/20 break-inside-avoid">
+                            <h4 className="text-lg font-semibold text-eerie-black dark:text-white border-b border-slate-gray/20 pb-2 mb-2">{category}</h4>
+                            <div className="divide-y divide-slate-gray/10 dark:divide-slate-gray/80">
+                                {grades.map(grade => (
+                                    <ScoreBar key={grade.subject} subject={grade.subject} score={grade.score} />
+                                ))}
+                            </div>
                         </div>
-                    </div>
-                );
-            })}
+                    );
+                })}
+            </div>
         </div>
     );
 };
+
 
 interface PrintableReportProps extends PerformanceOverviewContentProps {
     categorizedGrades: { [key: string]: Grade[] };
@@ -170,9 +175,13 @@ const PrintableReport = forwardRef<HTMLDivElement, PrintableReportProps>(
                      <h3 className="text-2xl font-bold text-slate-gray">Talent Assessment Profile</h3>
                 </div>
                 <TAPHeader student={student} t={t} />
-                <div className="grid grid-cols-2 gap-8 mt-6">
-                    <PerformanceOverviewContent {...props} isPrinting={true} />
-                    <DetailedScoresContent t={t} categorizedGrades={props.categorizedGrades} />
+                <div className="grid grid-cols-5 gap-8 mt-6">
+                    <div className="col-span-2">
+                         <PerformanceOverviewContent {...props} isPrinting={true} />
+                    </div>
+                    <div className="col-span-3">
+                        <DetailedScoresContent t={t} categorizedGrades={props.categorizedGrades} />
+                    </div>
                 </div>
                 <div className="text-center text-xs text-slate-gray mt-8 border-t border-slate-gray/20 pt-4">
                     Generated on {new Date().toLocaleDateString()} - Yanbu Candidate Dashboard
