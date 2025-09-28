@@ -5,6 +5,7 @@ export const translations: Translations = {
         dashboard: "Dashboard",
         candidates: "Candidates",
         analytics: "Analytics",
+        schedule: "Schedule",
         dashboardTitle: "Yanbu Candidate Dashboard",
         totalStudents: "Total Candidates",
         passRate: "Pass Rate",
@@ -65,7 +66,6 @@ export const translations: Translations = {
         technicalExperts: "Technical Experts",
         emergingTalent: "Emerging Talent",
         developmentFocus: "Development Focus",
-        // FIX: Added missing opening quote for the key.
         "insight1_part1": "Candidates with C1 have",
         "insight1_part2": "% higher pass rates than those with B1.",
         "insight2_part1": "The subject category '",
@@ -80,12 +80,18 @@ export const translations: Translations = {
         min: "Min",
         max: "Max",
         all: "All",
-
+        room: "Room",
+        day1: "Day 1 (29/Sep)",
+        day2: "Day 2 (30/Sep)",
+        available: "Available",
+        break: "Break",
+        completed: "Completed",
     },
     ar: {
         dashboard: "لوحة التحكم",
         candidates: "المرشحون",
         analytics: "التحليلات",
+        schedule: "الجدول الزمني",
         dashboardTitle: "لوحة تحكم مرشحي ينبع",
         totalStudents: "إجمالي المرشحين",
         passRate: "نسبة النجاح",
@@ -160,5 +166,11 @@ export const translations: Translations = {
         min: "الأدنى",
         max: "الأقصى",
         all: "الكل",
+        room: "غرفة",
+        day1: "اليوم الأول (29/سبتمبر)",
+        day2: "اليوم الثاني (30/سبتمبر)",
+        available: "متاح",
+        break: "استراحة",
+        completed: "مكتمل",
     }
 };

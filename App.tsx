@@ -11,6 +11,7 @@ import StudentDetail from './components/StudentDetail';
 import KioskView from './components/KioskView';
 import AnalyticsPage from './components/AnalyticsPage';
 import useLocalStorage from './hooks/useLocalStorage';
+import ScheduleView from './components/ScheduleView';
 
 const App: React.FC = () => {
     const [students, setStudents] = useState<Student[]>([]);
@@ -18,7 +19,7 @@ const App: React.FC = () => {
     const [darkMode, setDarkMode] = useLocalStorage<boolean>('darkMode', false);
     const [language, setLanguage] = useLocalStorage<Language>('language', 'en');
     const [isKioskMode, setIsKioskMode] = useLocalStorage<boolean>('kioskMode', false);
-    const [activeView, setActiveView] = useLocalStorage<'dashboard' | 'candidates' | 'analytics'>('activeView', 'dashboard');
+    const [activeView, setActiveView] = useLocalStorage<'dashboard' | 'candidates' | 'analytics' | 'schedule'>('activeView', 'dashboard');
 
 
     useEffect(() => {
@@ -84,6 +85,9 @@ const App: React.FC = () => {
                         )}
                          {activeView === 'analytics' && (
                            <AnalyticsPage students={students} t={t} language={language}/>
+                        )}
+                        {activeView === 'schedule' && (
+                           <ScheduleView students={students} t={t} language={language} />
                         )}
                         {activeView === 'candidates' && (
                             <div className="flex flex-col lg:flex-row gap-8">
