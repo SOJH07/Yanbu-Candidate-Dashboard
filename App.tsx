@@ -1,8 +1,9 @@
 
 
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { parseStudentData } from './data/studentData';
-import { Student, Language } from './types';
+import { Student, Language, InterviewStatus } from './types';
 import { translations } from './utils/translations';
 import Header from './components/Header';
 import StudentTable from './components/StudentTable';
@@ -19,6 +20,7 @@ const App: React.FC = () => {
     const [language, setLanguage] = useLocalStorage<Language>('language', 'en');
     const [isKioskMode, setIsKioskMode] = useLocalStorage<boolean>('kioskMode', false);
     const [activeView, setActiveView] = useLocalStorage<'dashboard' | 'candidates' | 'schedule'>('activeView', 'dashboard');
+    const [interviewStatuses, setInterviewStatuses] = useLocalStorage<Record<string, InterviewStatus>>('interviewStatuses', {});
 
 
     useEffect(() => {
@@ -83,7 +85,13 @@ const App: React.FC = () => {
                            <DashboardAnalyticsView students={students} t={t} language={language} />
                         )}
                         {activeView === 'schedule' && (
-                           <ScheduleView students={students} t={t} language={language} />
+                           <ScheduleView 
+                                students={students} 
+                                t={t} 
+                                language={language}
+                                interviewStatuses={interviewStatuses}
+                                setInterviewStatuses={setInterviewStatuses}
+                            />
                         )}
                         {activeView === 'candidates' && (
                             <div className="flex flex-col lg:flex-row gap-8">
@@ -98,6 +106,7 @@ const App: React.FC = () => {
                                             onClose={() => setSelectedStudent(null)} 
                                             t={t} 
                                             language={language}
+                                            interviewStatuses={interviewStatuses}
                                         />
                                     ) : (
                                         <div className="h-full flex items-center justify-center bg-white dark:bg-eerie-black-800 rounded-xl shadow-lg border border-slate-gray/20 p-8">

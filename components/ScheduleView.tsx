@@ -1,18 +1,41 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { Student, Language, Translations, DaySchedule, InterviewStatus } from '../types';
 import { scheduleData } from '../data/scheduleData';
-import useLocalStorage from '../hooks/useLocalStorage';
 import StudentDetail from './StudentDetail';
 
 interface ScheduleViewProps {
     students: Student[];
     t: Translations;
     language: Language;
+    interviewStatuses: Record<string, InterviewStatus>;
+    setInterviewStatuses: React.Dispatch<React.SetStateAction<Record<string, InterviewStatus>>>;
 }
 
-const ScheduleView: React.FC<ScheduleViewProps> = ({ students, t, language }) => {
+// --- Icon Components ---
+const CheckCircleIcon: React.FC<{ className?: string }> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 20 20" fill="currentColor">
+        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+    </svg>
+);
+const NoSymbolIcon: React.FC<{ className?: string }> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 20 20" fill="currentColor">
+        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM5.707 5.707a1 1 0 00-1.414 1.414L8.586 10l-4.293 4.293a1 1 0 101.414 1.414L10 11.414l4.293 4.293a1 1 0 001.414-1.414L11.414 10l4.293-4.293a1 1 0 00-1.414-1.414L10 8.586 5.707 5.707z" clipRule="evenodd" />
+    </svg>
+);
+const ClockIcon: React.FC<{ className?: string }> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 20 20" fill="currentColor">
+        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+    </svg>
+);
+const ArrowUturnLeftIcon: React.FC<{ className?: string }> = ({ className }) => (
+     <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 20 20" fill="currentColor">
+        <path fillRule="evenodd" d="M17 10a.75.75 0 01-.75.75H5.612l2.158 1.96a.75.75 0 11-1.04 1.08l-3.5-3.182a.75.75 0 010-1.08l3.5-3.182a.75.75 0 111.04 1.08L5.612 9.25H16.25A.75.75 0 0117 10z" clipRule="evenodd" />
+    </svg>
+);
+
+
+const ScheduleView: React.FC<ScheduleViewProps> = ({ students, t, language, interviewStatuses, setInterviewStatuses }) => {
     const [activeDay, setActiveDay] = useState<DaySchedule>(scheduleData[0]);
-    const [interviewStatuses, setInterviewStatuses] = useLocalStorage<Record<string, InterviewStatus>>('interviewStatuses', {});
     const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
     const [activeMenu, setActiveMenu] = useState<string | null>(null);
     const menuRef = useRef<HTMLDivElement>(null);
@@ -86,18 +109,27 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ students, t, language }) =>
     };
     
     const StatusMenu: React.FC<{ student: Student }> = ({ student }) => (
-        <div ref={menuRef} className="absolute top-8 right-2 w-40 bg-white dark:bg-eerie-black-800 rounded-md shadow-lg border border-slate-gray/20 z-20 text-sm">
+        <div ref={menuRef} className="absolute top-8 right-2 w-48 bg-white dark:bg-eerie-black-800 rounded-md shadow-lg border border-slate-gray/20 z-20 text-sm">
              <button onClick={(e) => {e.stopPropagation(); handleStatusChange(student.id, 'completed')}} className="w-full text-left px-3 py-2 hover:bg-slate-gray/10 dark:hover:bg-slate-gray/20 flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-primary-500"></div>{t.markCompleted}
+                <CheckCircleIcon className="h-4 w-4 text-primary-500" />{t.markCompleted}
             </button>
             <button onClick={(e) => {e.stopPropagation(); handleStatusChange(student.id, 'no-show')}} className="w-full text-left px-3 py-2 hover:bg-slate-gray/10 dark:hover:bg-slate-gray/20 flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-slate-gray"></div>{t.markNoShow}
+                <NoSymbolIcon className="h-4 w-4 text-slate-500" />{t.markNoShow}
             </button>
             <div className="border-t border-slate-gray/10 my-1"></div>
-            <button onClick={(e) => {e.stopPropagation(); handleStatusChange(student.id, 'pending')}} className="w-full text-left px-3 py-2 hover:bg-slate-gray/10 dark:hover:bg-slate-gray/20">{t.resetStatus}</button>
+            <button onClick={(e) => {e.stopPropagation(); handleStatusChange(student.id, 'pending')}} className="w-full text-left px-3 py-2 hover:bg-slate-gray/10 dark:hover:bg-slate-gray/20 flex items-center gap-2">
+                <ArrowUturnLeftIcon className="h-4 w-4 text-slate-500" />{t.resetStatus}
+            </button>
         </div>
     );
 
+    const StatusIconDisplay: React.FC<{ status: InterviewStatus }> = ({ status }) => {
+        switch(status) {
+            case 'completed': return <CheckCircleIcon className="h-5 w-5 text-primary-500" />;
+            case 'no-show': return <NoSymbolIcon className="h-5 w-5 text-slate-500" />;
+            default: return <ClockIcon className="h-5 w-5 text-slate-400" />;
+        }
+    };
 
     const ScheduleCell: React.FC<{ student: Student | null; status: InterviewStatus; onSelect: () => void; }> = ({ student, status, onSelect }) => {
         if (!student) {
@@ -120,6 +152,11 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ students, t, language }) =>
                     <p className={`font-semibold text-sm truncate ${status === 'completed' ? 'text-primary-800 dark:text-primary-300' : 'text-eerie-black dark:text-white'}`}>{`${student.firstName} ${student.lastName}`}</p>
                     <p className={`text-xs ${status === 'completed' ? 'text-slate-gray/80' : 'text-slate-gray'}`}>{student.id}</p>
                 </div>
+
+                <div className="self-start">
+                    <StatusIconDisplay status={status} />
+                </div>
+                
                 <div className="absolute top-2 right-2">
                     <button onClick={(e) => { e.stopPropagation(); setActiveMenu(isMenuOpen ? null : student.id); }} className="p-1 rounded-full hover:bg-slate-gray/20 transition-colors">
                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-slate-gray" viewBox="0 0 20 20" fill="currentColor">
@@ -150,6 +187,7 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ students, t, language }) =>
                             onClose={() => setSelectedStudent(null)} 
                             t={t} 
                             language={language}
+                            interviewStatuses={interviewStatuses}
                         />
                     </div>
                 </div>

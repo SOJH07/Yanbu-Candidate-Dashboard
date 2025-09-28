@@ -93,6 +93,8 @@ export const translations: Translations = {
         markNoShow: "Mark as No-Show",
         resetStatus: "Reset Status",
         interviewStarted: "Interview has started or is finished.",
+        interviewCompleted: "Interview Completed",
+        noShowStatus: "No-Show",
         passRateTop50: "Pass Rate of Top 50% Ranked",
         averageScoreComparison: "Average Score Comparison",
     },
@@ -188,6 +190,8 @@ export const translations: Translations = {
         markNoShow: "تحديد كـ لم يحضر",
         resetStatus: "إعادة تعيين الحالة",
         interviewStarted: "المقابلة قد بدأت أو انتهت.",
+        interviewCompleted: "اكتملت المقابلة",
+        noShowStatus: "لم يحضر",
         passRateTop50: "نسبة نجاح أفضل 50% ترتيباً",
         averageScoreComparison: "مقارنة متوسط الدرجات",
     }

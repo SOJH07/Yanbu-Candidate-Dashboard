@@ -1,7 +1,7 @@
 
 
 import React, { useRef, useMemo, useState, forwardRef, useEffect } from 'react';
-import { Student, Translations, Language, Grade } from '../types';
+import { Student, Translations, Language, Grade, InterviewStatus } from '../types';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Legend, ResponsiveContainer, Tooltip } from 'recharts';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -198,12 +198,56 @@ interface StudentDetailProps {
     onClose: () => void;
     t: Translations;
     language: Language;
+    interviewStatuses: Record<string, InterviewStatus>;
 }
 
-const StudentDetail: React.FC<StudentDetailProps> = ({ student, students, onClose, t, language }) => {
+const InterviewStatusIndicator: React.FC<{ statusText: string | null; t: Translations }> = ({ statusText, t }) => {
+    if (!statusText) return null;
+
+    let Icon: React.FC<{className?: string}>;
+    let iconClasses = "h-5 w-5";
+    let textClasses = "font-semibold tabular-nums";
+
+    if (statusText === t.interviewCompleted) {
+        Icon = ({className}) => (
+            <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+            </svg>
+        );
+        iconClasses += " text-primary-500";
+        textClasses += " text-primary-600 dark:text-primary-400";
+    } else if (statusText === t.noShowStatus) {
+        Icon = ({className}) => (
+            <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 20 20" fill="currentColor">
+                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+            </svg>
+        );
+        iconClasses += " text-slate-500";
+        textClasses += " text-slate-600 dark:text-slate-400";
+    } else { // Countdown or "Interview Started"
+        Icon = ({className}) => (
+            <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+            </svg>
+        );
+        const isCountdown = statusText.includes(":");
+        iconClasses += ` text-primary-500 ${isCountdown ? 'animate-pulse' : ''}`;
+        textClasses += " text-primary-600 dark:text-primary-400 font-mono";
+    }
+
+    return (
+        <div className="flex items-center gap-2">
+            <Icon className={iconClasses} />
+            <span className={textClasses}>{statusText}</span>
+        </div>
+    );
+};
+
+const StudentDetail: React.FC<StudentDetailProps> = ({ student, students, onClose, t, language, interviewStatuses }) => {
     const [isExporting, setIsExporting] = useState(false);
     const printRef = useRef<HTMLDivElement>(null);
     const [currentPage, setCurrentPage] = useState<'overview' | 'scores'>('overview');
+    const [timeRemaining, setTimeRemaining] = useState<string | null>(null);
 
     const scheduleInfo = useMemo(() => {
         for (const day of scheduleData) {
@@ -221,15 +265,22 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, students, onClos
         return null;
     }, [student.id]);
 
-    const [timeRemaining, setTimeRemaining] = useState<string | null>(null);
-
     useEffect(() => {
+        const studentStatus = interviewStatuses[student.id];
+        if (studentStatus === 'completed') {
+            setTimeRemaining(t.interviewCompleted);
+            return; 
+        }
+        if (studentStatus === 'no-show') {
+            setTimeRemaining(t.noShowStatus);
+            return;
+        }
+        
         if (!scheduleInfo) {
             setTimeRemaining(null);
             return;
         }
 
-        // Helper function to safely parse schedule date and time
         const getInterviewDateTime = (): Date | null => {
             const { dayName, time } = scheduleInfo;
             const dayMatch = dayName.match(/(\d+)\/(\w+)/);
@@ -237,15 +288,25 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, students, onClos
             
             const day = dayMatch[1];
             const monthStr = dayMatch[2];
-            const year = 2024; // Data is for Sep 2024
-            const months: { [key: string]: number } = { 'Sep': 8 }; // Months are 0-indexed in JS
+            const year = 2024; // Assuming current year for the schedule
+            const months: { [key: string]: number } = { 'Sep': 8 }; // Month is 0-indexed
             const month = months[monthStr];
             
             const [hours, minutes] = time.split(':').map(Number);
 
             if (month === undefined || isNaN(hours) || isNaN(minutes)) return null;
 
-            return new Date(year, month, parseInt(day), hours, minutes);
+            // To ensure timezone correctness, construct an ISO string with a specific offset.
+            // Assuming the schedule is for Yanbu, Saudi Arabia, which is UTC+3 (Arabia Standard Time).
+            // This creates a Date object that represents the exact moment in time, regardless of the user's local timezone.
+            const monthPadded = String(month + 1).padStart(2, '0');
+            const dayPadded = String(day).padStart(2, '0');
+            const hoursPadded = String(hours).padStart(2, '0');
+            const minutesPadded = String(minutes).padStart(2, '0');
+            
+            const isoString = `${year}-${monthPadded}-${dayPadded}T${hoursPadded}:${minutesPadded}:00+03:00`;
+            
+            return new Date(isoString);
         };
 
         const interviewDateTime = getInterviewDateTime();
@@ -255,36 +316,41 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, students, onClos
             return;
         }
 
-        // Set up an interval to update the countdown every second
-        const intervalId = setInterval(() => {
+        let intervalId: number | undefined;
+
+        const updateTimer = () => {
             const now = new Date();
             const difference = interviewDateTime.getTime() - now.getTime();
 
-            // If the interview time has passed, show the final message and stop the timer.
             if (difference <= 0) {
                 setTimeRemaining(t.interviewStarted);
-                clearInterval(intervalId);
-                return;
+                if (intervalId) clearInterval(intervalId);
+            } else {
+                const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+                
+                let remainingString = '';
+                if (days > 0) {
+                    remainingString += `${days}d `;
+                }
+                remainingString += `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+                
+                setTimeRemaining(remainingString);
             }
+        };
 
-            // Calculate remaining time
-            const days = Math.floor(difference / (1000 * 60 * 60 * 24));
-            const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((difference % (1000 * 60)) / 1000);
-            
-            let remainingString = '';
-            if (days > 0) {
-                remainingString += `${days}d `;
-            }
-            remainingString += `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-            
-            setTimeRemaining(remainingString);
-        }, 1000);
+        updateTimer();
+        
+        if (interviewDateTime.getTime() > new Date().getTime()) {
+            intervalId = window.setInterval(updateTimer, 1000);
+        }
 
-        // Cleanup function to clear the interval when the component unmounts or dependencies change
-        return () => clearInterval(intervalId);
-    }, [scheduleInfo, t.interviewStarted]);
+        return () => {
+            if (intervalId) clearInterval(intervalId);
+        };
+    }, [student.id, scheduleInfo, t, interviewStatuses]);
 
     const categorizedGrades = useMemo(() => {
         const categories: { [key: string]: Grade[] } = {};
@@ -470,16 +536,7 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, students, onClos
                                         {scheduleInfo.dayName}, {scheduleInfo.time} ({scheduleInfo.roomName})
                                     </span>
                                 </div>
-                                {timeRemaining && (
-                                    <div className="flex items-center gap-2 font-mono">
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-primary-500 animate-pulse" viewBox="0 0 20 20" fill="currentColor">
-                                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
-                                        </svg>
-                                        <span className="text-primary-600 dark:text-primary-400 font-semibold tabular-nums">
-                                            {timeRemaining}
-                                        </span>
-                                    </div>
-                                )}
+                                <InterviewStatusIndicator statusText={timeRemaining} t={t} />
                             </div>
                         )}
                         <div className="mt-2 flex items-center gap-4">
