@@ -21,17 +21,20 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ students, t, language }) =>
     const studentsMap = useMemo(() => new Map(students.map(s => [s.id, s])), [students]);
     
     const dailyStats = useMemo(() => {
-        // FIX: Use a type predicate with .filter() to correctly inform TypeScript that `undefined` values are removed,
-        // ensuring `scheduledStudentIds` is of type `Set<string>`.
-        const scheduledStudentIds = new Set(activeDay.rooms.flatMap(room => room.slots).map(slot => slot.studentId).filter((id): id is string => !!id));
+        // Use a type predicate to ensure student IDs are correctly typed as strings
+        const scheduledStudentIds = new Set(
+            activeDay.rooms
+                .flatMap(room => room.slots)
+                .map(slot => slot.studentId)
+                .filter((id): id is string => !!id)
+        );
         const total = scheduledStudentIds.size;
         
         let completed = 0;
         let noShows = 0;
 
         for (const id of scheduledStudentIds) {
-            // FIX: Add a type guard to ensure `id` is a string before using it as an index.
-            // This resolves a potential type inference issue where `id` might be considered `unknown`.
+            // Type guard ensures we only access statuses with valid string keys
             if (typeof id === 'string') {
                 const status = interviewStatuses[id];
                 if (status === 'completed') completed++;
@@ -50,13 +53,13 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ students, t, language }) =>
         setInterviewStatuses(prev => {
             const newStatuses = { ...prev };
             if (status === 'pending') {
-                delete newStatuses[studentId];
+                delete newStatuses[studentId]; // Resetting status removes it from storage
             } else {
                 newStatuses[studentId] = status;
             }
             return newStatuses;
         });
-        setActiveMenu(null);
+        setActiveMenu(null); // Close menu after selection
     };
     
     useEffect(() => {

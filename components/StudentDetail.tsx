@@ -229,7 +229,8 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, students, onClos
             return;
         }
 
-        const getInterviewDateTime = () => {
+        // Helper function to safely parse schedule date and time
+        const getInterviewDateTime = (): Date | null => {
             const { dayName, time } = scheduleInfo;
             const dayMatch = dayName.match(/(\d+)\/(\w+)/);
             if (!dayMatch) return null;
@@ -237,32 +238,36 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, students, onClos
             const day = dayMatch[1];
             const monthStr = dayMatch[2];
             const year = 2024; // Data is for Sep 2024
-            const months: { [key: string]: number } = { 'Sep': 8 };
+            const months: { [key: string]: number } = { 'Sep': 8 }; // Months are 0-indexed in JS
             const month = months[monthStr];
             
             const [hours, minutes] = time.split(':').map(Number);
 
-            if (month === undefined) return null;
+            if (month === undefined || isNaN(hours) || isNaN(minutes)) return null;
 
             return new Date(year, month, parseInt(day), hours, minutes);
         };
 
         const interviewDateTime = getInterviewDateTime();
+
         if (!interviewDateTime) {
-            setTimeRemaining('Invalid date');
+            setTimeRemaining('Invalid date format');
             return;
         }
 
+        // Set up an interval to update the countdown every second
         const intervalId = setInterval(() => {
             const now = new Date();
             const difference = interviewDateTime.getTime() - now.getTime();
 
+            // If the interview time has passed, show the final message and stop the timer.
             if (difference <= 0) {
                 setTimeRemaining(t.interviewStarted);
                 clearInterval(intervalId);
                 return;
             }
 
+            // Calculate remaining time
             const days = Math.floor(difference / (1000 * 60 * 60 * 24));
             const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
             const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
@@ -277,6 +282,7 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, students, onClos
             setTimeRemaining(remainingString);
         }, 1000);
 
+        // Cleanup function to clear the interval when the component unmounts or dependencies change
         return () => clearInterval(intervalId);
     }, [scheduleInfo, t.interviewStarted]);
 
