@@ -40,3 +40,5 @@ export interface DaySchedule {
   breakTimes: string[];
   rooms: RoomSchedule[];
 }
+
+export type InterviewStatus = 'pending' | 'completed' | 'no-show';

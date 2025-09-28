@@ -86,6 +86,12 @@ export const translations: Translations = {
         available: "Available",
         break: "Break",
         completed: "Completed",
+        remaining: "Remaining",
+        noShows: "No-Shows",
+        interviewsToday: "Interviews Today",
+        markCompleted: "Mark Completed",
+        markNoShow: "Mark as No-Show",
+        resetStatus: "Reset Status",
     },
     ar: {
         dashboard: "لوحة التحكم",
@@ -172,5 +178,11 @@ export const translations: Translations = {
         available: "متاح",
         break: "استراحة",
         completed: "مكتمل",
+        remaining: "المتبقي",
+        noShows: "لم يحضروا",
+        interviewsToday: "مقابلات اليوم",
+        markCompleted: "تحديد كمكتمل",
+        markNoShow: "تحديد كـ لم يحضر",
+        resetStatus: "إعادة تعيين الحالة",
     }
 };
