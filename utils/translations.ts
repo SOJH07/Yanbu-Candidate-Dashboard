@@ -1,3 +1,4 @@
+
 import { Translations } from '../types';
 
 export const translations: Translations = {
@@ -97,6 +98,10 @@ export const translations: Translations = {
         noShowStatus: "No-Show",
         passRateTop50: "Pass Rate of Top 50% Ranked",
         averageScoreComparison: "Average Score Comparison",
+        upcomingInterview: "Upcoming Interview",
+        interviewWith: "Interview with",
+        in: "in",
+        at: "at",
     },
     ar: {
         dashboard: "نظرة عامة",
@@ -194,5 +199,9 @@ export const translations: Translations = {
         noShowStatus: "لم يحضر",
         passRateTop50: "نسبة نجاح أفضل 50% ترتيباً",
         averageScoreComparison: "مقارنة متوسط الدرجات",
+        upcomingInterview: "مقابلة قادمة",
+        interviewWith: "مقابلة مع",
+        in: "في",
+        at: "الساعة",
     }
 };

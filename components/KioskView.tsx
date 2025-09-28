@@ -1,5 +1,4 @@
 
-
 import React, { useState } from 'react';
 import { Student, Translations, Language } from '../types';
 import StudentDetail from './StudentDetail';
@@ -33,11 +32,11 @@ const KioskView: React.FC<KioskViewProps> = ({ students, t, language }) => {
             <div className="w-full max-w-4xl mx-auto">
                 <StudentDetail
                     student={foundStudent}
-                    // FIX: The 'students' prop is required by StudentDetail for cohort comparisons.
                     students={students}
                     onClose={() => setFoundStudent(null)}
                     t={t}
                     language={language}
+                    interviewStatuses={{}}
                 />
             </div>
         );
