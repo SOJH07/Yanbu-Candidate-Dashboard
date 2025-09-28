@@ -6,6 +6,7 @@ import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Legend, 
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 import CefrBadge from './CefrBadge';
+import { scheduleData } from '../data/scheduleData';
 
 // Subject categorization
 const subjectCategories: { [key: string]: string[] } = {
@@ -204,6 +205,81 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, students, onClos
     const printRef = useRef<HTMLDivElement>(null);
     const [currentPage, setCurrentPage] = useState<'overview' | 'scores'>('overview');
 
+    const scheduleInfo = useMemo(() => {
+        for (const day of scheduleData) {
+            for (const room of day.rooms) {
+                const slot = room.slots.find(s => s.studentId === student.id);
+                if (slot) {
+                    return {
+                        dayName: day.dayName,
+                        roomName: room.roomName,
+                        time: slot.time,
+                    };
+                }
+            }
+        }
+        return null;
+    }, [student.id]);
+
+    const [timeRemaining, setTimeRemaining] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (!scheduleInfo) {
+            setTimeRemaining(null);
+            return;
+        }
+
+        const getInterviewDateTime = () => {
+            const { dayName, time } = scheduleInfo;
+            const dayMatch = dayName.match(/(\d+)\/(\w+)/);
+            if (!dayMatch) return null;
+            
+            const day = dayMatch[1];
+            const monthStr = dayMatch[2];
+            const year = 2024; // Data is for Sep 2024
+            const months: { [key: string]: number } = { 'Sep': 8 };
+            const month = months[monthStr];
+            
+            const [hours, minutes] = time.split(':').map(Number);
+
+            if (month === undefined) return null;
+
+            return new Date(year, month, parseInt(day), hours, minutes);
+        };
+
+        const interviewDateTime = getInterviewDateTime();
+        if (!interviewDateTime) {
+            setTimeRemaining('Invalid date');
+            return;
+        }
+
+        const intervalId = setInterval(() => {
+            const now = new Date();
+            const difference = interviewDateTime.getTime() - now.getTime();
+
+            if (difference <= 0) {
+                setTimeRemaining(t.interviewStarted);
+                clearInterval(intervalId);
+                return;
+            }
+
+            const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+            
+            let remainingString = '';
+            if (days > 0) {
+                remainingString += `${days}d `;
+            }
+            remainingString += `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            
+            setTimeRemaining(remainingString);
+        }, 1000);
+
+        return () => clearInterval(intervalId);
+    }, [scheduleInfo, t.interviewStarted]);
+
     const categorizedGrades = useMemo(() => {
         const categories: { [key: string]: Grade[] } = {};
         Object.keys(subjectCategories).forEach(cat => categories[cat] = []);
@@ -378,6 +454,28 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, students, onClos
                     <div>
                         <h2 className="text-2xl font-bold text-eerie-black dark:text-white">{student.firstName} {student.lastName}</h2>
                         <p className="text-sm text-slate-gray">{t.id}: {student.id}</p>
+                        {scheduleInfo && (
+                            <div className="mt-3 p-3 bg-anti-flash-white dark:bg-eerie-black rounded-lg border border-slate-gray/20 flex flex-wrap items-center justify-between gap-3 text-sm">
+                                <div className="flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-slate-gray" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
+                                    </svg>
+                                    <span className="font-semibold text-eerie-black dark:text-white">
+                                        {scheduleInfo.dayName}, {scheduleInfo.time} ({scheduleInfo.roomName})
+                                    </span>
+                                </div>
+                                {timeRemaining && (
+                                    <div className="flex items-center gap-2 font-mono">
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-primary-500 animate-pulse" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                                        </svg>
+                                        <span className="text-primary-600 dark:text-primary-400 font-semibold tabular-nums">
+                                            {timeRemaining}
+                                        </span>
+                                    </div>
+                                )}
+                            </div>
+                        )}
                         <div className="mt-2 flex items-center gap-4">
                             <CefrBadge cefr={student.cefr} />
                             <span className={`px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full ${student.status === 'Pass' ? 'bg-primary-100 text-primary-800 dark:bg-primary-950 dark:text-primary-300' : 'bg-accent/10 text-accent dark:bg-accent/20 dark:text-accent'}`}>

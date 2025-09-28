@@ -1,3 +1,4 @@
+
 import { Student, Grade } from '../types';
 
 const CSV_DATA = `First Name,Last Name,ID,Adjusted CEFR,H&S,Calculus,Applied Statics,Applied Statics,Appliesd Thermodynamics,General Chemistry,General Physics,Industrial Electricity,Industrial Safety,Industrial Supervision,Machining Processes,Materials Technology,Plant Maintenace,Tech avrage
@@ -283,7 +284,7 @@ export const parseStudentData = (): Student[] => {
 
         const totalScore = grades.reduce((sum, grade) => sum + grade.score, 0);
         const average = grades.length > 0 ? parseFloat((totalScore / grades.length).toFixed(1)) : 0;
-        const status = grades.every(grade => grade.score >= 60) ? 'Pass' : 'Fail';
+        const status = average < 60 ? 'Fail' : 'Pass';
 
         // Calculate combined average with 70% weight for tech and 30% for English
         const normalizedEnglishScore = (englishData.score / 96) * 100;

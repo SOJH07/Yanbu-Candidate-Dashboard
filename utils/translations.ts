@@ -2,7 +2,7 @@ import { Translations } from '../types';
 
 export const translations: Translations = {
     en: {
-        dashboard: "Dashboard",
+        dashboard: "Overview",
         candidates: "Candidates",
         analytics: "Analytics",
         schedule: "Schedule",
@@ -92,9 +92,12 @@ export const translations: Translations = {
         markCompleted: "Mark Completed",
         markNoShow: "Mark as No-Show",
         resetStatus: "Reset Status",
+        interviewStarted: "Interview has started or is finished.",
+        passRateTop50: "Pass Rate of Top 50% Ranked",
+        averageScoreComparison: "Average Score Comparison",
     },
     ar: {
-        dashboard: "لوحة التحكم",
+        dashboard: "نظرة عامة",
         candidates: "المرشحون",
         analytics: "التحليلات",
         schedule: "الجدول الزمني",
@@ -184,5 +187,8 @@ export const translations: Translations = {
         markCompleted: "تحديد كمكتمل",
         markNoShow: "تحديد كـ لم يحضر",
         resetStatus: "إعادة تعيين الحالة",
+        interviewStarted: "المقابلة قد بدأت أو انتهت.",
+        passRateTop50: "نسبة نجاح أفضل 50% ترتيباً",
+        averageScoreComparison: "مقارنة متوسط الدرجات",
     }
 };

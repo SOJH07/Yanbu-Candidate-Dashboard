@@ -21,16 +21,18 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ students, t, language }) =>
     const studentsMap = useMemo(() => new Map(students.map(s => [s.id, s])), [students]);
     
     const dailyStats = useMemo(() => {
-        const scheduledStudentIds = new Set(activeDay.rooms.flatMap(room => room.slots).map(slot => slot.studentId).filter(Boolean));
+        // FIX: Use a type predicate with .filter() to correctly inform TypeScript that `undefined` values are removed,
+        // ensuring `scheduledStudentIds` is of type `Set<string>`.
+        const scheduledStudentIds = new Set(activeDay.rooms.flatMap(room => room.slots).map(slot => slot.studentId).filter((id): id is string => !!id));
         const total = scheduledStudentIds.size;
         
         let completed = 0;
         let noShows = 0;
 
         for (const id of scheduledStudentIds) {
-            // FIX: The type of `id` can be `undefined` which is not a valid index.
-            // This check ensures `id` is a string before being used as an index.
-            if (id) {
+            // FIX: Add a type guard to ensure `id` is a string before using it as an index.
+            // This resolves a potential type inference issue where `id` might be considered `unknown`.
+            if (typeof id === 'string') {
                 const status = interviewStatuses[id];
                 if (status === 'completed') completed++;
                 else if (status === 'no-show') noShows++;

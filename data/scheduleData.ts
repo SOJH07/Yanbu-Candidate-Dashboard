@@ -5,17 +5,30 @@ const students: Student[] = parseStudentData();
 let studentIndex = 0;
 
 const createRooms = (roomNames: string[], times: string[]): RoomSchedule[] => {
-    return roomNames.map(name => {
-        const slots = times.map(time => {
-            const slot: ScheduleSlot = { time };
+    // Initialize rooms with empty slots for all specified interview times
+    const rooms: RoomSchedule[] = roomNames.map(name => ({
+        roomName: name,
+        slots: times.map(time => ({ time }))
+    }));
+
+    // Distribute students round-robin: fill one timeslot across all rooms, then the next, etc.
+    // This ensures top candidates are spread out and all rooms are utilized.
+    times.forEach(time => {
+        roomNames.forEach(roomName => {
             if (studentIndex < students.length) {
-                slot.studentId = students[studentIndex].id;
-                studentIndex++;
+                const room = rooms.find(r => r.roomName === roomName);
+                if (room) {
+                    const slot = room.slots.find(s => s.time === time);
+                    if (slot) {
+                       slot.studentId = students[studentIndex].id;
+                       studentIndex++;
+                    }
+                }
             }
-            return slot;
         });
-        return { roomName: name, slots };
     });
+
+    return rooms;
 };
 
 const day1InterviewTimes = [

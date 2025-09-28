@@ -5,13 +5,12 @@ import { parseStudentData } from './data/studentData';
 import { Student, Language } from './types';
 import { translations } from './utils/translations';
 import Header from './components/Header';
-import Dashboard from './components/Dashboard';
 import StudentTable from './components/StudentTable';
 import StudentDetail from './components/StudentDetail';
 import KioskView from './components/KioskView';
-import AnalyticsPage from './components/AnalyticsPage';
 import useLocalStorage from './hooks/useLocalStorage';
 import ScheduleView from './components/ScheduleView';
+import DashboardAnalyticsView from './components/DashboardAnalyticsView';
 
 const App: React.FC = () => {
     const [students, setStudents] = useState<Student[]>([]);
@@ -19,7 +18,7 @@ const App: React.FC = () => {
     const [darkMode, setDarkMode] = useLocalStorage<boolean>('darkMode', false);
     const [language, setLanguage] = useLocalStorage<Language>('language', 'en');
     const [isKioskMode, setIsKioskMode] = useLocalStorage<boolean>('kioskMode', false);
-    const [activeView, setActiveView] = useLocalStorage<'dashboard' | 'candidates' | 'analytics' | 'schedule'>('activeView', 'dashboard');
+    const [activeView, setActiveView] = useLocalStorage<'dashboard' | 'candidates' | 'schedule'>('activeView', 'dashboard');
 
 
     useEffect(() => {
@@ -81,10 +80,7 @@ const App: React.FC = () => {
                 ) : (
                     <>
                         {activeView === 'dashboard' && (
-                           <Dashboard students={students} t={t} language={language} />
-                        )}
-                         {activeView === 'analytics' && (
-                           <AnalyticsPage students={students} t={t} language={language}/>
+                           <DashboardAnalyticsView students={students} t={t} language={language} />
                         )}
                         {activeView === 'schedule' && (
                            <ScheduleView students={students} t={t} language={language} />
