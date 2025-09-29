@@ -1,19 +1,8 @@
 
-
 import React, { useState, useMemo, useRef, useEffect, useLayoutEffect } from 'react';
 import { Student, Language, Translations, DaySchedule, InterviewStatus } from '../types';
 import { scheduleData } from '../data/scheduleData';
 import StudentDetail from './StudentDetail';
-
-interface ScheduleViewProps {
-    students: Student[];
-    t: Translations;
-    language: Language;
-    interviewStatuses: Record<string, InterviewStatus>;
-    setInterviewStatuses: React.Dispatch<React.SetStateAction<Record<string, InterviewStatus>>>;
-    onSelectStudent: (student: Student | null) => void;
-    selectedStudent: Student | null;
-}
 
 // --- Icon Components ---
 const CheckCircleIcon: React.FC<{ className?: string }> = ({ className }) => (
@@ -37,6 +26,31 @@ const ArrowUturnLeftIcon: React.FC<{ className?: string }> = ({ className }) => 
     </svg>
 );
 
+const LiveInterviewIndicator: React.FC<{ progress: number }> = ({ progress }) => (
+    <div className="flex items-center gap-2 w-full pt-1">
+        <span className="relative flex h-2.5 w-2.5 flex-shrink-0">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-light-coral-red opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-light-coral-red"></span>
+        </span>
+        <div className="w-full bg-slate-200 dark:bg-eerie-black rounded-full h-1.5 overflow-hidden">
+            <div 
+                className="bg-gradient-to-r from-light-coral-red to-red-600 h-1.5 rounded-full" 
+                style={{ width: `${progress}%`, transition: 'width 1s linear' }}
+            ></div>
+        </div>
+    </div>
+);
+
+
+interface ScheduleViewProps {
+    students: Student[];
+    t: Translations;
+    language: Language;
+    interviewStatuses: Record<string, InterviewStatus>;
+    setInterviewStatuses: React.Dispatch<React.SetStateAction<Record<string, InterviewStatus>>>;
+    onSelectStudent: (student: Student | null) => void;
+    selectedStudent: Student | null;
+}
 
 const ScheduleView: React.FC<ScheduleViewProps> = ({ students, t, language, interviewStatuses, setInterviewStatuses, onSelectStudent, selectedStudent }) => {
     const [activeDay, setActiveDay] = useState<DaySchedule>(scheduleData[0]);
@@ -47,7 +61,7 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ students, t, language, inte
     const [now, setNow] = useState(new Date());
 
     useEffect(() => {
-        const timerId = setInterval(() => setNow(new Date()), 60 * 1000); // Update every minute
+        const timerId = setInterval(() => setNow(new Date()), 1000); // Update every second for live progress
         return () => clearInterval(timerId);
     }, []);
 
@@ -207,17 +221,27 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ students, t, language, inte
         }
     };
 
-    const ScheduleCell: React.FC<{ student: Student | null; status: InterviewStatus; onSelect: () => void; }> = ({ student, status, onSelect }) => {
+    const ScheduleCell: React.FC<{ 
+        student: Student | null; 
+        status: InterviewStatus; 
+        onSelect: () => void;
+        isLive: boolean;
+        progress: number;
+    }> = ({ student, status, onSelect, isLive, progress }) => {
         if (!student) {
             return <div className="p-2 h-full text-center text-sm text-slate-gray/70 flex items-center justify-center">{t.available}</div>
         }
         
         let cellClasses = `p-2.5 h-full w-full flex flex-col justify-between cursor-pointer transition-colors duration-200 group relative border-l-4 `;
 
-        switch(status) {
-            case 'completed': cellClasses += 'bg-primary-50 dark:bg-primary-950/50 border-primary-500'; break;
-            case 'no-show': cellClasses += 'bg-slate-100 dark:bg-slate-800/50 border-slate-500 opacity-70'; break;
-            default: cellClasses += 'hover:bg-slate-gray/5 dark:hover:bg-slate-gray/10 border-transparent';
+        if (isLive) {
+            cellClasses += 'bg-red-50 dark:bg-red-950/40 border-light-coral-red';
+        } else {
+             switch(status) {
+                case 'completed': cellClasses += 'bg-primary-50 dark:bg-primary-950/50 border-primary-500'; break;
+                case 'no-show': cellClasses += 'bg-slate-100 dark:bg-slate-800/50 border-slate-500 opacity-70'; break;
+                default: cellClasses += 'hover:bg-slate-gray/5 dark:hover:bg-slate-gray/10 border-transparent';
+            }
         }
         
         const isMenuOpen = activeMenu === student.id;
@@ -229,8 +253,12 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ students, t, language, inte
                     <p className={`text-xs ${status === 'completed' ? 'text-slate-gray/80' : 'text-slate-gray'}`}>{student.id}</p>
                 </div>
 
-                <div className="self-start">
-                    <StatusIconDisplay status={status} />
+                <div className="self-start w-full pr-8">
+                    {isLive ? (
+                        <LiveInterviewIndicator progress={progress} />
+                    ) : (
+                        <StatusIconDisplay status={status} />
+                    )}
                 </div>
                 
                 <div className="absolute top-2 right-2">
@@ -357,12 +385,31 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ students, t, language, inte
                                         const student = slot?.studentId ? studentsMap.get(slot.studentId) : null;
                                         const status = student ? interviewStatuses[student.id] || 'pending' : 'pending';
                                         
+                                        let isLive = false;
+                                        let progress = 0;
+                                        const INTERVIEW_DURATION_MS = 20 * 60 * 1000;
+
+                                        if (student && status === 'pending') {
+                                            const slotStart = new Date(simulatedNow);
+                                            const [h, m] = time.split(':').map(Number);
+                                            slotStart.setHours(h, m, 0, 0);
+                                            const slotEnd = new Date(slotStart.getTime() + INTERVIEW_DURATION_MS);
+
+                                            if (simulatedNow >= slotStart && simulatedNow < slotEnd) {
+                                                isLive = true;
+                                                const elapsed = simulatedNow.getTime() - slotStart.getTime();
+                                                progress = (elapsed / INTERVIEW_DURATION_MS) * 100;
+                                            }
+                                        }
+
                                         return (
                                             <div key={`${room.roomName}-${time}`} className="bg-white dark:bg-eerie-black-800 min-h-[70px] relative z-[2]">
                                                 <ScheduleCell 
                                                     student={student || null}
                                                     status={status}
                                                     onSelect={() => student && onSelectStudent(student)}
+                                                    isLive={isLive}
+                                                    progress={progress}
                                                 />
                                             </div>
                                         );
