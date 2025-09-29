@@ -1,6 +1,6 @@
 
 
-import React, { useState, useMemo, useRef, useEffect } from 'react';
+import React, { useState, useMemo, useRef, useEffect, useLayoutEffect } from 'react';
 import { Student, Language, Translations, DaySchedule, InterviewStatus } from '../types';
 import { scheduleData } from '../data/scheduleData';
 import StudentDetail from './StudentDetail';
@@ -42,6 +42,81 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ students, t, language, inte
     const [activeDay, setActiveDay] = useState<DaySchedule>(scheduleData[0]);
     const [activeMenu, setActiveMenu] = useState<string | null>(null);
     const menuRef = useRef<HTMLDivElement>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [indicatorTop, setIndicatorTop] = useState<number | null>(null);
+    const [now, setNow] = useState(new Date());
+
+    useEffect(() => {
+        const timerId = setInterval(() => setNow(new Date()), 60 * 1000); // Update every minute
+        return () => clearInterval(timerId);
+    }, []);
+
+    const simulatedNow = useMemo(() => {
+        const dayMatch = activeDay.dayName.match(/(\d+)\/(\w+)/);
+        if (!dayMatch) return new Date();
+
+        const dayOfMonth = parseInt(dayMatch[1], 10);
+        const monthStr = dayMatch[2];
+        const year = 2024;
+        const months: { [key: string]: number } = { 'Sep': 8 };
+        const month = months[monthStr];
+
+        const simulated = new Date();
+        simulated.setFullYear(year, month, dayOfMonth);
+        simulated.setHours(now.getHours());
+        simulated.setMinutes(now.getMinutes());
+        simulated.setSeconds(now.getSeconds());
+        return simulated;
+    }, [now, activeDay]);
+
+    const parseTime = (timeStr: string): number => {
+        const [h, m] = timeStr.split(':').map(Number);
+        return h * 60 + m;
+    };
+
+    useLayoutEffect(() => {
+        if (!containerRef.current) {
+            setIndicatorTop(null); return;
+        }
+        const gridEl = containerRef.current.querySelector('.schedule-grid');
+        if (!gridEl) {
+            setIndicatorTop(null); return;
+        }
+
+        const nowMins = simulatedNow.getHours() * 60 + simulatedNow.getMinutes();
+        const timeNodes = Array.from(gridEl.querySelectorAll<HTMLDivElement>('[data-time]'));
+        if (timeNodes.length < 2) {
+            setIndicatorTop(null); return;
+        }
+
+        let targetNode: HTMLDivElement | null = null;
+        let progress = 0;
+
+        for (let i = 0; i < timeNodes.length; i++) {
+            const node = timeNodes[i];
+            const timeStr = node.dataset.time!;
+            const timeMins = parseTime(timeStr);
+            const nextTimeMins = (i + 1 < timeNodes.length) ? parseTime(timeNodes[i + 1].dataset.time!) : timeMins + 20;
+
+            if (nowMins >= timeMins && nowMins < nextTimeMins) {
+                targetNode = node;
+                const duration = nextTimeMins - timeMins;
+                if (duration > 0) {
+                    progress = (nowMins - timeMins) / duration;
+                }
+                break;
+            }
+        }
+
+        if (targetNode) {
+            const nodeTop = targetNode.offsetTop;
+            const nodeHeight = targetNode.offsetHeight;
+            const top = nodeTop + (nodeHeight * progress);
+            setIndicatorTop(top);
+        } else {
+            setIndicatorTop(null);
+        }
+    }, [simulatedNow, activeDay]);
 
 
     const studentsMap = useMemo(() => new Map(students.map(s => [s.id, s])), [students]);
@@ -218,8 +293,21 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ students, t, language, inte
                     </div>
                 </div>
 
-                <div className="overflow-x-auto custom-scrollbar">
-                    <div className="grid bg-slate-gray/20 dark:bg-slate-gray/50 min-w-[800px]" style={{gridTemplateColumns: '60px repeat(4, 1fr)', gap: '1px'}}>
+                <div ref={containerRef} className="overflow-x-auto custom-scrollbar relative">
+                    {indicatorTop !== null && (
+                        <div className="absolute left-[61px] right-0 z-10 pointer-events-none" style={{ top: `${indicatorTop}px`, transform: 'translateY(-1px)' }}>
+                            <div className="relative h-[2px] bg-light-coral-red">
+                                <div className="absolute left-0 flex items-center">
+                                    <div className="w-2 h-2 bg-light-coral-red rounded-full -ml-1"></div>
+                                    <div className="h-[2px] w-2 bg-light-coral-red"></div>
+                                    <span className="text-xs font-bold px-1.5 py-0.5 bg-light-coral-red text-white rounded">
+                                        {t.now}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                    <div className="grid bg-slate-gray/20 dark:bg-slate-gray/50 min-w-[800px] schedule-grid" style={{gridTemplateColumns: '60px repeat(4, 1fr)', gap: '1px'}}>
                         <div className="bg-anti-flash-white dark:bg-eerie-black-800 p-2 text-center font-bold text-xs text-slate-gray uppercase tracking-wider"></div>
                         {activeDay.rooms.map((room, index) => (
                             <div key={room.roomName} className="bg-anti-flash-white dark:bg-eerie-black-800 p-3 text-center font-bold text-sm text-red-800 dark:text-light-coral-red">
@@ -230,14 +318,14 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ students, t, language, inte
                         {activeDay.allTimes.map(time => {
                             if (activeDay.breakTimes.includes(time)) {
                                 return (
-                                    <div key={time} className="col-span-5 bg-slate-gray/80 dark:bg-eerie-black-800 text-white font-semibold text-center py-2 text-sm">
+                                    <div key={time} data-time={time} className="col-span-5 bg-slate-gray/80 dark:bg-eerie-black-800 text-white font-semibold text-center py-2 text-sm">
                                         {time} {t.break}
                                     </div>
                                 );
                             }
                             return (
                                 <React.Fragment key={time}>
-                                    <div className="bg-anti-flash-white dark:bg-eerie-black-800 p-2 text-center font-mono text-sm text-slate-gray flex items-center justify-center">
+                                    <div data-time={time} className="bg-anti-flash-white dark:bg-eerie-black-800 p-2 text-center font-mono text-sm text-slate-gray flex items-center justify-center">
                                         {time}
                                     </div>
                                     {activeDay.rooms.map(room => {

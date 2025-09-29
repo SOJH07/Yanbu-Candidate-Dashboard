@@ -1,5 +1,4 @@
 
-
 import React, { useRef, useMemo, useState, forwardRef, useEffect } from 'react';
 import { Student, Translations, Language, Grade, InterviewStatus } from '../types';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Legend, ResponsiveContainer, Tooltip } from 'recharts';
@@ -248,19 +247,6 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, students, onClos
     const printRef = useRef<HTMLDivElement>(null);
     const [currentPage, setCurrentPage] = useState<'overview' | 'scores'>('overview');
     const [timeRemaining, setTimeRemaining] = useState<string | null>(null);
-    
-    // The user wants a running timer demonstration. We will use a simulated "current time"
-    // that starts before the first interviews, and ticks forward in real time.
-    // This ensures the countdown is visible regardless of the actual system time.
-    const getInitialMockTime = () => new Date('2024-09-29T08:20:00+03:00');
-    const [mockCurrentTime, setMockCurrentTime] = useState(getInitialMockTime);
-
-    useEffect(() => {
-        const timerId = setInterval(() => {
-            setMockCurrentTime(prev => new Date(prev.getTime() + 1000));
-        }, 1000);
-        return () => clearInterval(timerId);
-    }, []);
 
     const scheduleInfo = useMemo(() => {
         for (const day of scheduleData) {
@@ -279,16 +265,6 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, students, onClos
     }, [student.id]);
 
     useEffect(() => {
-        const studentStatus = interviewStatuses[student.id];
-        if (studentStatus === 'completed') {
-            setTimeRemaining(t.interviewCompleted);
-            return; 
-        }
-        if (studentStatus === 'no-show') {
-            setTimeRemaining(t.noShowStatus);
-            return;
-        }
-        
         if (!scheduleInfo) {
             setTimeRemaining(null);
             return;
@@ -325,28 +301,53 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, students, onClos
             setTimeRemaining('Invalid date format');
             return;
         }
-        
-        const now = mockCurrentTime;
-        const difference = interviewDateTime.getTime() - now.getTime();
 
-        if (difference <= 0) {
-            setTimeRemaining(t.interviewStarted);
-        } else {
-            const days = Math.floor(difference / (1000 * 60 * 60 * 24));
-            const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((difference % (1000 * 60)) / 1000);
-            
-            let remainingString = '';
-            if (days > 0) {
-                remainingString += `${days}d `;
+        const updateTimer = () => {
+            const studentStatus = interviewStatuses[student.id];
+            if (studentStatus === 'completed') {
+                setTimeRemaining(t.interviewCompleted);
+                return;
             }
-            remainingString += `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-            
-            setTimeRemaining(remainingString);
-        }
+            if (studentStatus === 'no-show') {
+                setTimeRemaining(t.noShowStatus);
+                return;
+            }
 
-    }, [student.id, scheduleInfo, t, interviewStatuses, mockCurrentTime]);
+            const interviewTimestamp = interviewDateTime.getTime();
+
+            // Create an "effectiveNow" date: current time of day on the interview's date.
+            // This makes the countdown always relevant for demonstration.
+            const effectiveNow = new Date();
+            effectiveNow.setUTCFullYear(interviewDateTime.getUTCFullYear());
+            effectiveNow.setUTCMonth(interviewDateTime.getUTCMonth());
+            effectiveNow.setUTCDate(interviewDateTime.getUTCDate());
+
+            const difference = interviewTimestamp - effectiveNow.getTime();
+
+            if (difference <= 0) {
+                setTimeRemaining(t.interviewStarted);
+            } else {
+                const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+                
+                let remainingString = '';
+                if (days > 0) {
+                    remainingString += `${days}d `;
+                }
+                remainingString += `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+                
+                setTimeRemaining(remainingString);
+            }
+        };
+
+        updateTimer();
+        const timerId = setInterval(updateTimer, 1000);
+
+        return () => clearInterval(timerId);
+
+    }, [student.id, scheduleInfo, t, interviewStatuses]);
 
     const categorizedGrades = useMemo(() => {
         const categories: { [key: string]: Grade[] } = {};

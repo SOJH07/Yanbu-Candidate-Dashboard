@@ -1,4 +1,5 @@
 
+
 import { Translations } from '../types';
 
 export const translations: Translations = {
@@ -102,6 +103,7 @@ export const translations: Translations = {
         interviewWith: "Interview with",
         in: "in",
         at: "at",
+        now: "Now",
     },
     ar: {
         dashboard: "نظرة عامة",
@@ -203,5 +205,6 @@ export const translations: Translations = {
         interviewWith: "مقابلة مع",
         in: "في",
         at: "الساعة",
+        now: "الآن",
     }
 };

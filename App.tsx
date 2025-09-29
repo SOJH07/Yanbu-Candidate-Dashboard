@@ -1,5 +1,4 @@
 
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { parseStudentData } from './data/studentData';
 import { Student, Language, InterviewStatus } from './types';
@@ -204,7 +203,13 @@ const App: React.FC = () => {
                         {activeView === 'candidates' && (
                             <div className="flex flex-col lg:flex-row gap-8">
                                 <div className="lg:w-1/2 flex flex-col gap-8">
-                                    <StudentTable students={students} onSelectStudent={setSelectedStudent} t={t} language={language} />
+                                    <StudentTable
+                                        students={students}
+                                        onSelectStudent={setSelectedStudent}
+                                        t={t}
+                                        language={language}
+                                        interviewStatuses={interviewStatuses}
+                                    />
                                 </div>
                                 <div className="lg:w-1/2">
                                     {selectedStudent ? (

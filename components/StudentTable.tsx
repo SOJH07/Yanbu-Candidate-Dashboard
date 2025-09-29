@@ -1,5 +1,6 @@
+
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { Student, Language, SortKey, Translations } from '../types';
+import { Student, Language, SortKey, Translations, InterviewStatus } from '../types';
 import CefrBadge from './CefrBadge';
 
 interface StudentTableProps {
@@ -7,6 +8,7 @@ interface StudentTableProps {
     onSelectStudent: (student: Student) => void;
     t: Translations;
     language: Language;
+    interviewStatuses: Record<string, InterviewStatus>;
 }
 
 const SortIcon: React.FC<{ direction: 'asc' | 'desc' | 'none' }> = ({ direction }) => {
@@ -14,13 +16,13 @@ const SortIcon: React.FC<{ direction: 'asc' | 'desc' | 'none' }> = ({ direction 
     return direction === 'asc' ? <span className="text-primary-500">↑</span> : <span className="text-primary-500">↓</span>;
 };
 
-const StudentTable: React.FC<StudentTableProps> = ({ students, onSelectStudent, t, language }) => {
+const StudentTable: React.FC<StudentTableProps> = ({ students, onSelectStudent, t, language, interviewStatuses }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: 'asc' | 'desc' } | null>({ key: 'rank', direction: 'asc' });
 
     const initialFilters = {
         cefr: [] as string[],
-        status: '' as 'Pass' | 'Fail' | '',
+        status: '' as 'Pass' | 'Fail' | 'No-Show' | '',
         averageRange: [0, 100] as [number, number]
     };
     const [filters, setFilters] = useState(initialFilters);
@@ -61,7 +63,11 @@ const StudentTable: React.FC<StudentTableProps> = ({ students, onSelectStudent, 
             filtered = filtered.filter(s => filters.cefr.includes(s.cefr));
         }
         if (filters.status) {
-            filtered = filtered.filter(s => s.status === filters.status);
+            if (filters.status === 'No-Show') {
+                filtered = filtered.filter(s => interviewStatuses[s.id] === 'no-show');
+            } else { // Pass or Fail
+                filtered = filtered.filter(s => s.status === filters.status);
+            }
         }
         filtered = filtered.filter(s => s.combinedAverage >= filters.averageRange[0] && s.combinedAverage <= filters.averageRange[1]);
 
@@ -90,7 +96,7 @@ const StudentTable: React.FC<StudentTableProps> = ({ students, onSelectStudent, 
         
         return filtered;
 
-    }, [students, searchTerm, sortConfig, filters]);
+    }, [students, searchTerm, sortConfig, filters, interviewStatuses]);
 
     const requestSort = (key: SortKey) => {
         let direction: 'asc' | 'desc' = 'asc';
@@ -177,15 +183,15 @@ const StudentTable: React.FC<StudentTableProps> = ({ students, onSelectStudent, 
      const StatusFilter = () => (
         <div className="relative">
              <button onClick={() => handleFilterButtonClick('status')} className={filterButtonClasses(!!filters.status)}>
-                 <span>{t.status}{filters.status && `: ${filters.status === 'Pass' ? t.pass : t.fail}`}</span>
+                 <span>{t.status}{filters.status && `: ${filters.status === 'Pass' ? t.pass : (filters.status === 'Fail' ? t.fail : t.noShowStatus)}`}</span>
                  <svg className="h-4 w-4 text-slate-gray" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
             </button>
             {openFilter === 'status' && (
                 <DropdownPanel>
                     <div className="space-y-1">
-                        {(['', 'Pass', 'Fail'] as const).map(status => (
+                        {(['', 'Pass', 'Fail', 'No-Show'] as const).map(status => (
                             <button key={status} onClick={() => { setFilters(f => ({ ...f, status })); setOpenFilter(null); }} className="w-full text-left px-3 py-2 rounded-md hover:bg-slate-gray/10 dark:hover:bg-slate-gray/20">
-                                {status === '' ? t.all : (status === 'Pass' ? t.pass : t.fail)}
+                                {status === '' ? t.all : (status === 'Pass' ? t.pass : (status === 'Fail' ? t.fail : t.noShowStatus))}
                             </button>
                         ))}
                     </div>
