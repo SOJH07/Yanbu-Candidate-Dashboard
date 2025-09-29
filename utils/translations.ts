@@ -104,6 +104,7 @@ export const translations: Translations = {
         in: "in",
         at: "at",
         now: "Now",
+        timezone: "(UTC +03:00) Kuwait, Riyadh",
     },
     ar: {
         dashboard: "نظرة عامة",
@@ -206,5 +207,6 @@ export const translations: Translations = {
         in: "في",
         at: "الساعة",
         now: "الآن",
+        timezone: "(UTC +03:00) الكويت، الرياض",
     }
 };

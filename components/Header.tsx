@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import { Language, Translations } from '../types';
 
@@ -45,6 +46,12 @@ const Header: React.FC<HeaderProps> = ({ darkMode, setDarkMode, language, setLan
                 )}
             </div>
             <div className="flex items-center gap-4">
+                {!isKioskMode && (
+                     <div className="hidden lg:flex items-center gap-2 text-sm text-slate-gray">
+                        <span className="w-1 h-4 bg-light-coral-red rounded"></span>
+                        <span>{t.timezone}</span>
+                    </div>
+                )}
                  <button
                     onClick={() => setIsKioskMode(!isKioskMode)}
                     className="p-2 rounded-full text-slate-gray hover:bg-slate-gray/10 dark:hover:bg-slate-gray/20 transition"

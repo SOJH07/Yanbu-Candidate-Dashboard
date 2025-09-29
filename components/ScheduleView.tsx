@@ -295,17 +295,41 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ students, t, language, inte
 
                 <div ref={containerRef} className="overflow-x-auto custom-scrollbar relative">
                     {indicatorTop !== null && (
-                        <div className="absolute left-[61px] right-0 z-10 pointer-events-none" style={{ top: `${indicatorTop}px`, transform: 'translateY(-1px)' }}>
-                            <div className="relative h-[2px] bg-light-coral-red">
-                                <div className="absolute left-0 flex items-center">
-                                    <div className="w-2 h-2 bg-light-coral-red rounded-full -ml-1"></div>
-                                    <div className="h-[2px] w-2 bg-light-coral-red"></div>
-                                    <span className="text-xs font-bold px-1.5 py-0.5 bg-light-coral-red text-white rounded">
-                                        {t.now}
-                                    </span>
+                        <>
+                            {/* The line across the schedule, behind content */}
+                            <div
+                                className="absolute left-[60px] right-0 z-[1] pointer-events-none"
+                                style={{ 
+                                    top: `${indicatorTop}px`,
+                                    ...(language === 'ar' && { left: '0', right: '60px' })
+                                }}
+                            >
+                                <div className="h-[1px] bg-light-coral-red/80"></div>
+                            </div>
+
+                            {/* The "Now" indicator label, on top of everything */}
+                            <div
+                                className="absolute z-20 pointer-events-none"
+                                style={{
+                                    top: `${indicatorTop}px`,
+                                    left: language === 'ar' ? 'auto' : '60px',
+                                    right: language === 'ar' ? '60px' : 'auto',
+                                    transform: 'translateY(-50%)',
+                                }}
+                            >
+                                <div className={`flex items-center ${language === 'ar' ? 'flex-row-reverse' : ''}`}>
+                                    <div style={{ transform: `translateX(${language === 'ar' ? '100%' : '-100%'})` }} className={`${language === 'ar' ? 'pl-2' : 'pr-2'}`}>
+                                        <span className="text-xs font-bold px-2 py-0.5 bg-light-coral-red text-white rounded shadow-lg whitespace-nowrap">
+                                            {t.now}
+                                        </span>
+                                    </div>
+                                    <div 
+                                        className="w-3 h-3 bg-light-coral-red rounded-full border-2 border-white dark:border-eerie-black-800 shadow"
+                                        style={{ transform: `translateX(${language === 'ar' ? '50%' : '-50%'})` }}
+                                    ></div>
                                 </div>
                             </div>
-                        </div>
+                        </>
                     )}
                     <div className="grid bg-slate-gray/20 dark:bg-slate-gray/50 min-w-[800px] schedule-grid" style={{gridTemplateColumns: '60px repeat(4, 1fr)', gap: '1px'}}>
                         <div className="bg-anti-flash-white dark:bg-eerie-black-800 p-2 text-center font-bold text-xs text-slate-gray uppercase tracking-wider"></div>
@@ -334,7 +358,7 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ students, t, language, inte
                                         const status = student ? interviewStatuses[student.id] || 'pending' : 'pending';
                                         
                                         return (
-                                            <div key={`${room.roomName}-${time}`} className="bg-white dark:bg-eerie-black-800 min-h-[70px]">
+                                            <div key={`${room.roomName}-${time}`} className="bg-white dark:bg-eerie-black-800 min-h-[70px] relative z-[2]">
                                                 <ScheduleCell 
                                                     student={student || null}
                                                     status={status}
