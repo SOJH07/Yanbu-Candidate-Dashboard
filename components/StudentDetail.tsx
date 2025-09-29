@@ -248,6 +248,19 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, students, onClos
     const printRef = useRef<HTMLDivElement>(null);
     const [currentPage, setCurrentPage] = useState<'overview' | 'scores'>('overview');
     const [timeRemaining, setTimeRemaining] = useState<string | null>(null);
+    
+    // The user wants a running timer demonstration. We will use a simulated "current time"
+    // that starts before the first interviews, and ticks forward in real time.
+    // This ensures the countdown is visible regardless of the actual system time.
+    const getInitialMockTime = () => new Date('2024-09-29T08:20:00+03:00');
+    const [mockCurrentTime, setMockCurrentTime] = useState(getInitialMockTime);
+
+    useEffect(() => {
+        const timerId = setInterval(() => {
+            setMockCurrentTime(prev => new Date(prev.getTime() + 1000));
+        }, 1000);
+        return () => clearInterval(timerId);
+    }, []);
 
     const scheduleInfo = useMemo(() => {
         for (const day of scheduleData) {
@@ -286,19 +299,16 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, students, onClos
             const dayMatch = dayName.match(/(\d+)\/(\w+)/);
             if (!dayMatch) return null;
             
-            const day = dayMatch[1];
+            const day = parseInt(dayMatch[1], 10);
             const monthStr = dayMatch[2];
-            const year = 2024; // Assuming current year for the schedule
-            const months: { [key: string]: number } = { 'Sep': 8 }; // Month is 0-indexed
+            const year = 2024;
+            const months: { [key: string]: number } = { 'Sep': 8 };
             const month = months[monthStr];
             
             const [hours, minutes] = time.split(':').map(Number);
 
-            if (month === undefined || isNaN(hours) || isNaN(minutes)) return null;
-
-            // To ensure timezone correctness, construct an ISO string with a specific offset.
-            // Assuming the schedule is for Yanbu, Saudi Arabia, which is UTC+3 (Arabia Standard Time).
-            // This creates a Date object that represents the exact moment in time, regardless of the user's local timezone.
+            if (month === undefined || isNaN(day) || isNaN(hours) || isNaN(minutes)) return null;
+            
             const monthPadded = String(month + 1).padStart(2, '0');
             const dayPadded = String(day).padStart(2, '0');
             const hoursPadded = String(hours).padStart(2, '0');
@@ -315,42 +325,28 @@ const StudentDetail: React.FC<StudentDetailProps> = ({ student, students, onClos
             setTimeRemaining('Invalid date format');
             return;
         }
-
-        let intervalId: number | undefined;
-
-        const updateTimer = () => {
-            const now = new Date();
-            const difference = interviewDateTime.getTime() - now.getTime();
-
-            if (difference <= 0) {
-                setTimeRemaining(t.interviewStarted);
-                if (intervalId) clearInterval(intervalId);
-            } else {
-                const days = Math.floor(difference / (1000 * 60 * 60 * 24));
-                const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
-                const seconds = Math.floor((difference % (1000 * 60)) / 1000);
-                
-                let remainingString = '';
-                if (days > 0) {
-                    remainingString += `${days}d `;
-                }
-                remainingString += `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-                
-                setTimeRemaining(remainingString);
-            }
-        };
-
-        updateTimer();
         
-        if (interviewDateTime.getTime() > new Date().getTime()) {
-            intervalId = window.setInterval(updateTimer, 1000);
+        const now = mockCurrentTime;
+        const difference = interviewDateTime.getTime() - now.getTime();
+
+        if (difference <= 0) {
+            setTimeRemaining(t.interviewStarted);
+        } else {
+            const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+            
+            let remainingString = '';
+            if (days > 0) {
+                remainingString += `${days}d `;
+            }
+            remainingString += `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            
+            setTimeRemaining(remainingString);
         }
 
-        return () => {
-            if (intervalId) clearInterval(intervalId);
-        };
-    }, [student.id, scheduleInfo, t, interviewStatuses]);
+    }, [student.id, scheduleInfo, t, interviewStatuses, mockCurrentTime]);
 
     const categorizedGrades = useMemo(() => {
         const categories: { [key: string]: Grade[] } = {};

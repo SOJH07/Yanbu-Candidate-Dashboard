@@ -4,7 +4,6 @@ import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { Student, Language, Translations, DaySchedule, InterviewStatus } from '../types';
 import { scheduleData } from '../data/scheduleData';
 import StudentDetail from './StudentDetail';
-import CalendarView from './CalendarView';
 
 interface ScheduleViewProps {
     students: Student[];
@@ -42,7 +41,6 @@ const ArrowUturnLeftIcon: React.FC<{ className?: string }> = ({ className }) => 
 const ScheduleView: React.FC<ScheduleViewProps> = ({ students, t, language, interviewStatuses, setInterviewStatuses, onSelectStudent, selectedStudent }) => {
     const [activeDay, setActiveDay] = useState<DaySchedule>(scheduleData[0]);
     const [activeMenu, setActiveMenu] = useState<string | null>(null);
-    const [viewType, setViewType] = useState<'grid' | 'calendar'>('grid');
     const menuRef = useRef<HTMLDivElement>(null);
 
 
@@ -198,90 +196,71 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ students, t, language, inte
             
             <div className="flex items-center justify-between mb-4 flex-wrap gap-4">
                 <h2 className="text-2xl font-bold text-eerie-black dark:text-white">{t.schedule}</h2>
-                 <div className="flex items-center gap-2">
-                    <div className="p-1 bg-anti-flash-white dark:bg-eerie-black rounded-lg flex items-center gap-1">
-                        <button onClick={() => setViewType('grid')} className={`px-3 py-1 text-sm font-semibold rounded-md transition-colors ${viewType === 'grid' ? 'bg-primary-500 text-white shadow' : 'text-slate-gray'}`}>Grid</button>
-                        <button onClick={() => setViewType('calendar')} className={`px-3 py-1 text-sm font-semibold rounded-md transition-colors ${viewType === 'calendar' ? 'bg-primary-500 text-white shadow' : 'text-slate-gray'}`}>Calendar</button>
-                    </div>
-                    {viewType === 'grid' && (
-                        <div className="flex items-center gap-2 p-1.5 bg-anti-flash-white dark:bg-eerie-black rounded-xl">
-                            <DayTab day={scheduleData[0]} />
-                            <DayTab day={scheduleData[1]} />
-                        </div>
-                    )}
+                <div className="flex items-center gap-2 p-1.5 bg-anti-flash-white dark:bg-eerie-black rounded-xl">
+                    <DayTab day={scheduleData[0]} />
+                    <DayTab day={scheduleData[1]} />
                 </div>
             </div>
             
-            {viewType === 'grid' ? (
-                <>
-                    <div className="mb-6 p-4 bg-anti-flash-white/50 dark:bg-eerie-black/50 rounded-lg border border-slate-gray/20">
-                        <div className="flex justify-between items-center mb-2">
-                            <h3 className="font-semibold text-eerie-black dark:text-white">{t.interviewsToday}</h3>
-                            <span className="text-sm font-medium text-slate-gray">{dailyStats.completed} / {dailyStats.total} {t.completed}</span>
-                        </div>
-                        <div className="w-full bg-slate-gray/20 dark:bg-slate-gray/30 rounded-full h-2.5 mb-4">
-                            <div className="bg-primary-500 h-2.5 rounded-full transition-all duration-500" style={{width: `${dailyStats.progress}%`}}></div>
-                        </div>
-                        <div className="grid grid-cols-3 gap-4">
-                            <StatCard label={t.completed} value={dailyStats.completed} color="#62B766" />
-                            <StatCard label={t.remaining} value={dailyStats.remaining} color="#707F98" />
-                            <StatCard label={t.noShows} value={dailyStats.noShows} color="#E77373" />
-                        </div>
+            <>
+                <div className="mb-6 p-4 bg-anti-flash-white/50 dark:bg-eerie-black/50 rounded-lg border border-slate-gray/20">
+                    <div className="flex justify-between items-center mb-2">
+                        <h3 className="font-semibold text-eerie-black dark:text-white">{t.interviewsToday}</h3>
+                        <span className="text-sm font-medium text-slate-gray">{dailyStats.completed} / {dailyStats.total} {t.completed}</span>
                     </div>
+                    <div className="w-full bg-slate-gray/20 dark:bg-slate-gray/30 rounded-full h-2.5 mb-4">
+                        <div className="bg-primary-500 h-2.5 rounded-full transition-all duration-500" style={{width: `${dailyStats.progress}%`}}></div>
+                    </div>
+                    <div className="grid grid-cols-3 gap-4">
+                        <StatCard label={t.completed} value={dailyStats.completed} color="#62B766" />
+                        <StatCard label={t.remaining} value={dailyStats.remaining} color="#707F98" />
+                        <StatCard label={t.noShows} value={dailyStats.noShows} color="#E77373" />
+                    </div>
+                </div>
 
-                    <div className="overflow-x-auto custom-scrollbar">
-                        <div className="grid bg-slate-gray/20 dark:bg-slate-gray/50 min-w-[800px]" style={{gridTemplateColumns: '60px repeat(4, 1fr)', gap: '1px'}}>
-                            <div className="bg-anti-flash-white dark:bg-eerie-black-800 p-2 text-center font-bold text-xs text-slate-gray uppercase tracking-wider"></div>
-                            {activeDay.rooms.map((room, index) => (
-                                <div key={room.roomName} className="bg-anti-flash-white dark:bg-eerie-black-800 p-3 text-center font-bold text-sm text-red-800 dark:text-light-coral-red">
-                                    {t.room} {index + 1}
-                                </div>
-                            ))}
+                <div className="overflow-x-auto custom-scrollbar">
+                    <div className="grid bg-slate-gray/20 dark:bg-slate-gray/50 min-w-[800px]" style={{gridTemplateColumns: '60px repeat(4, 1fr)', gap: '1px'}}>
+                        <div className="bg-anti-flash-white dark:bg-eerie-black-800 p-2 text-center font-bold text-xs text-slate-gray uppercase tracking-wider"></div>
+                        {activeDay.rooms.map((room, index) => (
+                            <div key={room.roomName} className="bg-anti-flash-white dark:bg-eerie-black-800 p-3 text-center font-bold text-sm text-red-800 dark:text-light-coral-red">
+                                {t.room} {index + 1}
+                            </div>
+                        ))}
 
-                            {activeDay.allTimes.map(time => {
-                                if (activeDay.breakTimes.includes(time)) {
-                                    return (
-                                        <div key={time} className="col-span-5 bg-slate-gray/80 dark:bg-eerie-black-800 text-white font-semibold text-center py-2 text-sm">
-                                            {time} {t.break}
-                                        </div>
-                                    );
-                                }
+                        {activeDay.allTimes.map(time => {
+                            if (activeDay.breakTimes.includes(time)) {
                                 return (
-                                    <React.Fragment key={time}>
-                                        <div className="bg-anti-flash-white dark:bg-eerie-black-800 p-2 text-center font-mono text-sm text-slate-gray flex items-center justify-center">
-                                            {time}
-                                        </div>
-                                        {activeDay.rooms.map(room => {
-                                            const slot = room.slots.find(s => s.time === time);
-                                            const student = slot?.studentId ? studentsMap.get(slot.studentId) : null;
-                                            const status = student ? interviewStatuses[student.id] || 'pending' : 'pending';
-                                            
-                                            return (
-                                                <div key={`${room.roomName}-${time}`} className="bg-white dark:bg-eerie-black-800 min-h-[70px]">
-                                                    <ScheduleCell 
-                                                        student={student || null}
-                                                        status={status}
-                                                        onSelect={() => student && onSelectStudent(student)}
-                                                    />
-                                                </div>
-                                            );
-                                        })}
-                                    </React.Fragment>
+                                    <div key={time} className="col-span-5 bg-slate-gray/80 dark:bg-eerie-black-800 text-white font-semibold text-center py-2 text-sm">
+                                        {time} {t.break}
+                                    </div>
                                 );
-                            })}
-                        </div>
+                            }
+                            return (
+                                <React.Fragment key={time}>
+                                    <div className="bg-anti-flash-white dark:bg-eerie-black-800 p-2 text-center font-mono text-sm text-slate-gray flex items-center justify-center">
+                                        {time}
+                                    </div>
+                                    {activeDay.rooms.map(room => {
+                                        const slot = room.slots.find(s => s.time === time);
+                                        const student = slot?.studentId ? studentsMap.get(slot.studentId) : null;
+                                        const status = student ? interviewStatuses[student.id] || 'pending' : 'pending';
+                                        
+                                        return (
+                                            <div key={`${room.roomName}-${time}`} className="bg-white dark:bg-eerie-black-800 min-h-[70px]">
+                                                <ScheduleCell 
+                                                    student={student || null}
+                                                    status={status}
+                                                    onSelect={() => student && onSelectStudent(student)}
+                                                />
+                                            </div>
+                                        );
+                                    })}
+                                </React.Fragment>
+                            );
+                        })}
                     </div>
-                </>
-            ) : (
-                <CalendarView
-                    scheduleData={scheduleData}
-                    studentsMap={studentsMap}
-                    t={t}
-                    interviewStatuses={interviewStatuses}
-                    onSelectStudent={(student) => onSelectStudent(student)}
-                    language={language}
-                />
-            )}
+                </div>
+            </>
         </div>
     );
 };
