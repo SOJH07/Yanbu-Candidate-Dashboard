@@ -84,7 +84,9 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ students, t, language, inte
     }, [now, activeDay]);
 
     const parseTime = (timeStr: string): number => {
+        if (!timeStr || !timeStr.includes(':')) return 0;
         const [h, m] = timeStr.split(':').map(Number);
+        if (isNaN(h) || isNaN(m)) return 0;
         return h * 60 + m;
     };
 
@@ -108,9 +110,13 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ students, t, language, inte
 
         for (let i = 0; i < timeNodes.length; i++) {
             const node = timeNodes[i];
-            const timeStr = node.dataset.time!;
+            const timeStr = node.dataset.time;
+            if (!timeStr) continue;
+
             const timeMins = parseTime(timeStr);
-            const nextTimeMins = (i + 1 < timeNodes.length) ? parseTime(timeNodes[i + 1].dataset.time!) : timeMins + 20;
+            const nextTimeNode = timeNodes[i + 1];
+            const nextTimeStr = nextTimeNode ? nextTimeNode.dataset.time : undefined;
+            const nextTimeMins = nextTimeStr ? parseTime(nextTimeStr) : timeMins + 20;
 
             if (nowMins >= timeMins && nowMins < nextTimeMins) {
                 targetNode = node;
@@ -198,18 +204,25 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ students, t, language, inte
         );
     };
     
-    const StatusMenu: React.FC<{ student: Student }> = ({ student }) => (
-        <div ref={menuRef} className="absolute top-8 right-2 w-48 bg-white dark:bg-eerie-black-800 rounded-md shadow-lg border border-slate-gray/20 z-20 text-sm">
-             <button onClick={(e) => {e.stopPropagation(); handleStatusChange(student.id, 'completed')}} className="w-full text-left px-3 py-2 hover:bg-slate-gray/10 dark:hover:bg-slate-gray/20 flex items-center gap-2">
-                <CheckCircleIcon className="h-4 w-4 text-primary-500" />{t.markCompleted}
-            </button>
-            <button onClick={(e) => {e.stopPropagation(); handleStatusChange(student.id, 'no-show')}} className="w-full text-left px-3 py-2 hover:bg-slate-gray/10 dark:hover:bg-slate-gray/20 flex items-center gap-2">
-                <NoSymbolIcon className="h-4 w-4 text-slate-500" />{t.markNoShow}
-            </button>
-            <div className="border-t border-slate-gray/10 my-1"></div>
-            <button onClick={(e) => {e.stopPropagation(); handleStatusChange(student.id, 'pending')}} className="w-full text-left px-3 py-2 hover:bg-slate-gray/10 dark:hover:bg-slate-gray/20 flex items-center gap-2">
-                <ArrowUturnLeftIcon className="h-4 w-4 text-slate-500" />{t.resetStatus}
-            </button>
+    const StatusMenu: React.FC<{ student: Student; status: InterviewStatus }> = ({ student, status }) => (
+        <div ref={menuRef} className="absolute top-8 right-2 w-max bg-white dark:bg-eerie-black-800 rounded-md shadow-lg border border-slate-gray/20 z-40 text-sm py-1">
+            {status === 'pending' ? (
+                <>
+                    <button onClick={(e) => {e.stopPropagation(); handleStatusChange(student.id, 'completed')}} className="w-full text-left px-4 py-2 hover:bg-slate-gray/10 dark:hover:bg-slate-gray/20 flex items-center gap-3 whitespace-nowrap">
+                        <CheckCircleIcon className="h-5 w-5 text-primary-500" />
+                        <span>{t.markCompleted}</span>
+                    </button>
+                    <button onClick={(e) => {e.stopPropagation(); handleStatusChange(student.id, 'no-show')}} className="w-full text-left px-4 py-2 hover:bg-slate-gray/10 dark:hover:bg-slate-gray/20 flex items-center gap-3 whitespace-nowrap">
+                        <NoSymbolIcon className="h-5 w-5 text-slate-500" />
+                        <span>{t.markNoShow}</span>
+                    </button>
+                </>
+            ) : (
+                <button onClick={(e) => {e.stopPropagation(); handleStatusChange(student.id, 'pending')}} className="w-full text-left px-4 py-2 hover:bg-slate-gray/10 dark:hover:bg-slate-gray/20 flex items-center gap-3 whitespace-nowrap">
+                    <ArrowUturnLeftIcon className="h-5 w-5 text-slate-500" />
+                    <span>{t.resetStatus}</span>
+                </button>
+            )}
         </div>
     );
 
@@ -267,7 +280,7 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ students, t, language, inte
                             <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
                         </svg>
                     </button>
-                     {isMenuOpen && <StatusMenu student={student} />}
+                     {isMenuOpen && <StatusMenu student={student} status={status} />}
                 </div>
             </div>
         );
@@ -401,9 +414,11 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ students, t, language, inte
                                                 progress = (elapsed / INTERVIEW_DURATION_MS) * 100;
                                             }
                                         }
+                                        
+                                        const isMenuOpenForCell = student && activeMenu === student.id;
 
                                         return (
-                                            <div key={`${room.roomName}-${time}`} className="bg-white dark:bg-eerie-black-800 min-h-[70px] relative z-[2]">
+                                            <div key={`${room.roomName}-${time}`} className={`bg-white dark:bg-eerie-black-800 min-h-[70px] relative ${isMenuOpenForCell ? 'z-30' : 'z-10'}`}>
                                                 <ScheduleCell 
                                                     student={student || null}
                                                     status={status}
